@@ -1,20 +1,16 @@
-"""
-URL configuration for core_config project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
-"""
 from django.contrib import admin
-from django.urls import path, include  # 'include' adicionado aqui para corrigir o NameError
+from django.urls import path, include
+from django.views.generic import RedirectView
+from users.views import dashboard
 
 urlpatterns = [
-    # Painel Administrativo padrão do Django [cite: 108]
+    # Redireciona a página inicial (http://127.0.0.1:8000/) para o login
+    path('', RedirectView.as_view(url='/accounts/login/'), name='index'),
+    
     path('admin/', admin.site.urls),
-    
-    # Sistema de Autenticação Completo (Login, Logout, Senha) 
     path('accounts/', include('allauth.urls')), 
-    
-    # Rotas do Serviço de Aulas (Geração de QR Code e CRUD de Aulas) [cite: 146, 154, 157]
     path('classes/', include('classes.urls')),
     
+    # Rota do Dashboard personalizado
+    path('dashboard/', dashboard, name='dashboard'),
 ]

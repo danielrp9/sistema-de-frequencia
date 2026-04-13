@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Sistema de Frequência</title>
+</head>
+<body>
+    <h1>Bem-vindo ao Sistema, {{ user.username }}!</h1>
+    <p>Você está logado como: <strong>{{ tipo }}</strong></p>
+    
+    <hr>
+    
+    {% if user.is_professor %}
+        <h3>Ações do Professor:</h3>
+        <ul>
+            <li><a href="/classes/aula/nova/">Criar Nova Aula</a></li>
+            <li><a href="/admin/classes/aula/">Gerar QR Codes</a></li>
+        </ul>
+    {% endif %}
+
+    {% if user.is_aluno %}
+        <h3>Ações do Aluno:</h3>
+        <p>Use o seu celular para escanear o QR Code em sala de aula.</p>
+    {% endif %}
+
+    <form method="post" action="{% url 'account_logout' %}">
+        {% csrf_token %}
+        <button type="submit">Sair (Logout)</button>
+    </form>
+</body>
+</html>
