@@ -1,12 +1,16 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Carrega as variáveis do arquivo .env
+load_dotenv()
 
 # Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Configurações de Segurança
-SECRET_KEY = 'sua-chave-secreta-aqui' 
-DEBUG = True
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'chave-padrao-caso-nao-encontre-env')
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = []
 
 # Aplicações Instaladas
@@ -33,7 +37,7 @@ INSTALLED_APPS = [
     'classes',   
 ]
 
-# Configurações de Autenticação (Allauth atualizado para versão 2026)
+# Configurações de Autenticação (Allauth)
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -42,10 +46,11 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'users.User' 
 
-# Correção dos Warnings do Allauth
+# Configurações Allauth Atualizadas
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'none' 
 LOGIN_REDIRECT_URL = '/dashboard/' 
 
@@ -83,6 +88,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core_config.wsgi.application'
 
+# Configuração de E-mail com Resend (Via variáveis de ambiente)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.resend.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'resend'
+EMAIL_HOST_PASSWORD = os.getenv('RESEND_API_KEY')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
+
 # Banco de Dados SQLite (Ativo para Desenvolvimento)
 DATABASES = {
     'default': {
@@ -91,13 +105,13 @@ DATABASES = {
     }
 }
 
-# Configuração do PostgreSQL (Comentada para Etapa futura)
+# Configuração do PostgreSQL (Comentada para uso futuro)
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
 #         'NAME': 'frequencia_db',
-#         'USER': 'daniel_admin',
-#         'PASSWORD': 'sua_senha_aqui',
+#         'USER': os.getenv('DB_USER'),
+#         'PASSWORD': os.getenv('DB_PASSWORD'),
 #         'HOST': 'localhost',
 #         'PORT': '5432',
 #     }
@@ -119,7 +133,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Cache com Redis (Sistemas Distribuídos)
+# Cache com Redis (Essencial para Sistemas Distribuídos e Allauth Rate Limit)
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -130,7 +144,7 @@ CACHES = {
     }
 }
 
-# Mensageria com Celery e RabbitMQ
+# Mensageria com Celery
 CELERY_BROKER_URL = 'pyamqp://guest@localhost//'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
