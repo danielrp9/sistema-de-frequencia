@@ -2,30 +2,74 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistema de Frequência</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
-<body>
-    <h1>Bem-vindo ao Sistema, {{ user.username }}!</h1>
-    <p>Você está logado como: <strong>{{ tipo }}</strong></p>
-    
-    <hr>
-    
-    {% if user.is_professor %}
-        <h3>Ações do Professor:</h3>
-        <ul>
-            <li><a href="/classes/aula/nova/">Criar Nova Aula</a></li>
-            <li><a href="/admin/classes/aula/">Gerar QR Codes</a></li>
-        </ul>
-    {% endif %}
+<body class="flex items-center justify-center p-6 text-slate-200">
 
-    {% if user.is_aluno %}
-        <h3>Ações do Aluno:</h3>
-        <p>Use o seu celular para escanear o QR Code em sala de aula.</p>
-    {% endif %}
+    <div class="glass w-full max-w-2xl rounded-2xl p-8 shadow-2xl">
+        <header class="mb-8 border-b border-slate-700 pb-6 text-center">
+            <h1 class="text-3xl font-bold tracking-tight text-white">
+                Bem-vindo, <span class="text-blue-400">{{ user.username }}</span>!
+            </h1>
+            <p class="mt-2 text-slate-400 italic">
+                Nível de Acesso: <span class="font-semibold text-blue-300 uppercase">{{ tipo }}</span>
+            </p>
+        </header>
 
-    <form method="post" action="{% url 'account_logout' %}">
-        {% csrf_token %}
-        <button type="submit">Sair (Logout)</button>
-    </form>
+        <main class="space-y-8">
+            {% if user.is_professor %}
+                <section class="space-y-4">
+                    <h3 class="text-xl font-semibold text-slate-100 flex items-center">
+                        <span class="mr-2 text-blue-500">●</span> Painel do Docente
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <a href="/classes/aula/nova/" 
+                           class="flex items-center justify-center p-4 bg-blue-600 hover:bg-blue-500 transition-all rounded-xl font-medium text-white shadow-lg">
+                            ➕ Criar Nova Aula
+                        </a>
+                        <a href="/admin/classes/aula/" 
+                           class="flex items-center justify-center p-4 bg-slate-700 hover:bg-slate-600 transition-all rounded-xl font-medium text-white shadow-lg border border-slate-600">
+                            📱 Gerar QR Codes
+                        </a>
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if user.is_aluno %}
+                <section class="p-6 bg-blue-900/20 border border-blue-500/30 rounded-xl">
+                    <h3 class="text-xl font-semibold text-blue-300 mb-2">Ações do Discente</h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        Aponte a câmera do seu dispositivo para o <span class="font-bold text-white">QR Code</span> projetado pelo professor para registrar sua presença física nesta aula.
+                    </p>
+                </section>
+            {% endif %}
+        </main>
+
+        <footer class="mt-10 pt-6 border-t border-slate-700 flex justify-between items-center">
+            <p class="text-xs text-slate-500 italic">UFVJM - Sistema de Frequência Distribuído</p>
+            
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="px-5 py-2 text-sm font-semibold text-red-400 border border-red-500/50 hover:bg-red-500/10 transition-all rounded-lg">
+                    Sair do Sistema
+                </button>
+            </form>
+        </footer>
+    </div>
+
 </body>
 </html>

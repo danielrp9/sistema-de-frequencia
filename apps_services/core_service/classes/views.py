@@ -5,11 +5,9 @@ from django.shortcuts import get_object_or_404
 from .models import Aula
 
 def visualizar_qr_code(request, aula_id):
-    # Obtém os dados da aula [cite: 57]
+    # Obtém os dados da aula 
     aula = get_object_or_404(Aula, pk=aula_id)
     
-    # Estrutura o link conforme o exemplo do professor [cite: 82]
-    # Substitua 'sistema.edu' pelo IP do seu servidor se necessário
     dados_qr = f"https://sistema.edu/presenca?id={aula.id}&token={aula.token_qr}"
     
     # Configuração do QR Code 

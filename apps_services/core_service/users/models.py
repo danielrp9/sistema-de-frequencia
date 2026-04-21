@@ -5,7 +5,7 @@ class User(AbstractUser):
     """
     Modelo de usuário personalizado para suportar as permissões
     exigidas: Administradores, Professores e Alunos.
-    """
+    """ 
     is_professor = models.BooleanField(default=False)
     is_aluno = models.BooleanField(default=False)
 

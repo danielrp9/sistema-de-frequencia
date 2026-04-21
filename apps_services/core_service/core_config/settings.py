@@ -5,11 +5,11 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Configurações de Segurança
-SECRET_KEY = 'sua-chave-secreta-aqui' # Em produção, use variáveis de ambiente
+SECRET_KEY = 'sua-chave-secreta-aqui' 
 DEBUG = True
 ALLOWED_HOSTS = []
 
-
+# Aplicações Instaladas
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -17,23 +17,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites', # Exigido pelo allauth
+    'django.contrib.sites', 
 
     # Apps de Terceiros
     'rest_framework',         
-    'corsheaders',            # Para permitir acessos do frontend
+    'corsheaders',            
     'allauth',                
     'allauth.account',        
     'allauth.socialaccount',
-    'simple_history',         # Para auditoria 
+    'simple_history',         
 
     # Meus Apps de Microserviço 
-    'users',     # Gerencia Alunos, Professores e Admin [
-    'academic',  # Gerencia Disciplinas e Salas 
-    'classes',   # Gerencia Aulas e QR Codes 
+    'users',     
+    'academic',  
+    'classes',   
 ]
 
-# Configurações de Autenticação (Allauth) [cite: 19, 20, 22]
+# Configurações de Autenticação (Allauth atualizado para versão 2026)
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -42,9 +42,10 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'users.User' 
 
+# Correção dos Warnings do Allauth
+ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'none' 
 LOGIN_REDIRECT_URL = '/dashboard/' 
 
@@ -58,11 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
-    # Necessário para as versões recentes do allauth
     'allauth.account.middleware.AccountMiddleware',
-    
-    # Middleware para rastrear histórico de alterações 
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
@@ -86,18 +83,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core_config.wsgi.application'
 
-# Banco de Dados PostgreSQL 
+# Banco de Dados SQLite (Ativo para Desenvolvimento)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'frequencia_db',
-        'USER': 'daniel_admin',
-        'PASSWORD': 'sua_senha_segura',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
+# Configuração do PostgreSQL (Comentada para Etapa futura)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'frequencia_db',
+#         'USER': 'daniel_admin',
+#         'PASSWORD': 'sua_senha_aqui',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -106,17 +110,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
+# Internacionalização
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
-
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
+# Cache com Redis (Sistemas Distribuídos)
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -127,14 +130,14 @@ CACHES = {
     }
 }
 
-
+# Mensageria com Celery e RabbitMQ
 CELERY_BROKER_URL = 'pyamqp://guest@localhost//'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
-
+# Segurança Física: Ranges de IP da UFVJM
 UNIVERSIDADE_IP_RANGES = [
-    '127.0.0.1',        # Localhost para testes
-    '192.168.0.0/16',   # Rede interna genérica
-    '200.131.0.0/16',   # Exemplo de range institucional UFVJM
+    '127.0.0.1',        # Localhost
+    '192.168.0.0/16',   # Rede interna
+    '200.131.0.0/16',   # Range UFVJM
 ]
