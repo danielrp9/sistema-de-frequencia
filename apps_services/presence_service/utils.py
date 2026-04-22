@@ -3,7 +3,6 @@ from ipaddress import ip_network, ip_address
 from django.conf import settings
 
 def validar_ip_universidade(ip_cliente):
-    """Verifica se o IP de origem pertence ao range institucional[cite: 98, 99]."""
     for network in settings.UNIVERSIDADE_IP_RANGES:
         if ip_address(ip_cliente) in ip_network(network):
             return True
