@@ -46,13 +46,13 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'users.User' 
 
-# Configurações Allauth Atualizadas
+# --- Configurações Allauth (Atualizadas para evitar Deprecation Warnings) ---
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'none' 
 LOGIN_REDIRECT_URL = '/dashboard/' 
+# ---------------------------------------------------------------------------
 
 # Middlewares 
 MIDDLEWARE = [
@@ -97,25 +97,13 @@ EMAIL_HOST_USER = 'resend'
 EMAIL_HOST_PASSWORD = os.getenv('RESEND_API_KEY')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
 
-# Banco de Dados SQLite (Ativo para Desenvolvimento)
+# Banco de Dados SQLite (Ativo para Desenvolvimento - Etapa 1)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# Configuração do PostgreSQL (Comentada para uso futuro)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'frequencia_db',
-#         'USER': os.getenv('DB_USER'),
-#         'PASSWORD': os.getenv('DB_PASSWORD'),
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -133,7 +121,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Cache com Redis (Essencial para Sistemas Distribuídos e Allauth Rate Limit)
+# Cache com Redis (Essencial para Sistemas Distribuídos)
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

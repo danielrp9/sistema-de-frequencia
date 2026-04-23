@@ -31,7 +31,6 @@ def registrar_presenca(request):
             return render(request, 'erro.html', {'msg': 'Token de segurança inválido ou expirado.'})
 
         # 3. Validar se o aluno já registrou presença (Uso de Cache Redis) 
-        # Chave: presenca:ID_AULA:ID_ALUNO
         cache_key = f"presenca:{aula.id}:{request.user.perfil_aluno.id}"
         if cache.get(cache_key):
             return render(request, 'erro.html', {'msg': 'Você já registrou presença para esta aula.'})
@@ -70,7 +69,6 @@ def registrar_presenca(request):
             'msg': 'Sua presença está sendo processada e será registrada em instantes.'
         })
 
-    # Caso seja um GET (Acesso inicial via link do QR Code) 
     context = {
         'aula_id': request.GET.get('id'),
         'token': request.GET.get('token')

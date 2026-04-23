@@ -1,23 +1,25 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from classes.models import Aula 
 
 @login_required
 def dashboard(request):
-    """
-    Página principal que exibe o dashboard personalizado
-    conforme o tipo de usuário (Admin, Professor ou Aluno).
-    """
     user = request.user
+    
+    # Determinamos o tipo para o template
+    is_professor = getattr(user, 'is_professor', False)
+    is_aluno = getattr(user, 'is_aluno', False)
+    is_admin = user.is_superuser
+
     context = {
         'user': user,
+        'is_professor': is_professor or is_admin, # Admin vê painel de professor para testes
+        'is_aluno': is_aluno,
+        'tipo': 'Administrador' if is_admin else 'Professor' if is_professor else 'Aluno',
     }
     
-    # Lógica para diferenciar o conteúdo do dashboard
-    if user.is_superuser:
-        context['tipo'] = 'Administrador'
-    elif user.is_professor:
-        context['tipo'] = 'Professor'
-    elif user.is_aluno:
-        context['tipo'] = 'Aluno'
+    # Buscamos aulas se for docente ou admin
+    if is_professor or is_admin:
+        context['aulas_recentes'] = Aula.objects.all().order_by('-data')[:5]
         
     return render(request, 'dashboard.html', context)
