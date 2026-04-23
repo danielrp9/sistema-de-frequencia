@@ -80,7 +80,7 @@ python3 manage.py createsuperuser
 
 ---
 
-## 🏃 Execução do Sistema
+## Execução do Sistema
 Utilizar dois terminais distintos para garantir a operação distribuída:
 
 * **Terminal 1 (Servidor de Aplicação):** `python3 manage.py runserver`
@@ -88,7 +88,7 @@ Utilizar dois terminais distintos para garantir a operação distribuída:
 
 ---
 
-## 🛠️ Cronograma e Funcionalidades
+## Cronograma e Funcionalidades
 
 ### **1ª Etapa (Concluída - Entrega Atual)**
 - [x] **Autenticação (Django-Allauth):** Login, logout, criptografia de senhas e recuperação via e-mail.
