@@ -93,7 +93,7 @@
             {% if is_professor %}
                 <section class="space-y-10">
                     <div class="flex flex-col sm:flex-row justify-between items-end sm:items-center gap-4">
-                        <h2 class="text-2xl font-bold text-white tracking-tight text-slate-100 uppercase tracking-widest text-sm">Controle de Disciplinas</h2>
+                        <h2 class="text-2xl font-bold text-white tracking-tight uppercase tracking-widest text-sm">Controle de Disciplinas</h2>
                         <a href="/admin/classes/aula/add/" class="flex items-center gap-2 px-8 py-4 bg-white text-slate-950 hover:bg-blue-400 hover:text-white transition-all rounded-2xl font-black text-xs uppercase tracking-tighter shadow-xl shadow-blue-500/10">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
@@ -131,7 +131,11 @@
                                         <td class="p-6">
                                             <div class="flex items-center justify-center gap-3">
                                                 {% if is_ativa and not aula.encerrada_manualmente %}
-                                                    <button onclick="openQRModal('{% url 'visualizar_qr_code' aula.id %}')" class="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-400 transition-all shadow-lg shadow-blue-500/20">
+                                                    <button 
+                                                        type="button"
+                                                        data-url="{% url 'visualizar_qr_code' aula.id %}" 
+                                                        onclick="handleOpenModal(this)" 
+                                                        class="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-400 transition-all shadow-lg shadow-blue-500/20">
                                                         QR Code
                                                     </button>
                                                     
@@ -186,6 +190,12 @@
     </div>
 
     <script>
+        // CORREÇÃO: Função que lê o data-attribute para evitar erro de linter
+        function handleOpenModal(button) {
+            const url = button.getAttribute('data-url');
+            openQRModal(url);
+        }
+
         function openQRModal(url) {
             const modal = document.getElementById('qrModal');
             const img = document.getElementById('qrImage');

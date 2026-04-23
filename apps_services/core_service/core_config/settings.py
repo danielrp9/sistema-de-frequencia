@@ -136,4 +136,5 @@ UNIVERSIDADE_IP_RANGES = [
     '127.0.0.1',        # Localhost
     '192.168.0.0/16',   # Rede interna
     '200.131.0.0/16',   # Range UFVJM
+    '10.0.0.0/8',
 ]

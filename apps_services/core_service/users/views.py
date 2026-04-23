@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from classes.models import Aula 
+from pprint import pprint
 
 @login_required
 def dashboard(request):
@@ -18,6 +19,14 @@ def dashboard(request):
     }
     
     if is_professor or is_admin:
-        context['aulas_recentes'] = Aula.objects.all().order_by('-data')[:5]
-        
+        # CORREÇÃO: Ordenando por data E horário de início para garantir a ordem cronológica correta
+        aulas_queryset = Aula.objects.all().order_by('-data', '-horario_inicio')[:5]
+        context['aulas_recentes'] = aulas_queryset
+
+        # Debug no console
+        print("\n" + "="*80)
+        print(f"DEBUG: AULAS RECENTES (Mostrando 5 de {Aula.objects.count()})")
+        pprint(list(aulas_queryset.values()), indent=4, width=100)
+        print("="*80 + "\n")
+
     return render(request, 'dashboard.html', context)
