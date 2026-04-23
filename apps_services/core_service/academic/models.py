@@ -6,7 +6,7 @@ from simple_history.models import HistoricalRecords
 class Sala(models.Model):
     nome = models.CharField(max_length=100)
     predio = models.CharField(max_length=100)
-    # Coordenadas para o Geofencing (Essencial para a Etapa 2)
+    # Coordenadas para o Geofencing 
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     raio_permitido = models.FloatField(default=50.0) 
@@ -35,7 +35,7 @@ class Course(models.Model):
 class Disciplina(models.Model):
     nome = models.CharField(max_length=255)
     codigo = models.CharField(max_length=20, unique=True)
-    # Vinculamos a disciplina a um curso para ficar organizado 
+    
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True, related_name='disciplinas')
     
     professor_responsavel = models.ForeignKey(Professor, on_delete=models.CASCADE, related_name='disciplinas')

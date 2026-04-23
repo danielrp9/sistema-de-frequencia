@@ -2,13 +2,10 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Carrega as variáveis do arquivo .env
 load_dotenv()
 
-# Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Configurações de Segurança
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'chave-padrao-caso-nao-encontre-env')
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = []
@@ -23,15 +20,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites', 
 
-    # Apps de Terceiros
-    'rest_framework',         
+   'rest_framework',         
     'corsheaders',            
     'allauth',                
     'allauth.account',        
     'allauth.socialaccount',
     'simple_history',         
 
-    # Meus Apps de Microserviço 
+
     'users',     
     'academic',  
     'classes',   
@@ -46,15 +42,13 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'users.User' 
 
-# --- Configurações Allauth (Atualizadas para evitar Deprecation Warnings) ---
+# --- Configurações Allauth 
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'none' 
 LOGIN_REDIRECT_URL = '/dashboard/' 
-# ---------------------------------------------------------------------------
-
-# Middlewares 
+ 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -88,7 +82,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core_config.wsgi.application'
 
-# Configuração de E-mail com Resend (Via variáveis de ambiente)
+# Configuração de E-mail com Resend 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.resend.com'
 EMAIL_PORT = 465
@@ -97,7 +91,7 @@ EMAIL_HOST_USER = 'resend'
 EMAIL_HOST_PASSWORD = os.getenv('RESEND_API_KEY')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
 
-# Banco de Dados SQLite (Ativo para Desenvolvimento - Etapa 1)
+# Banco de Dados SQLite 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -112,7 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internacionalização
+
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
@@ -121,7 +115,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Cache com Redis (Essencial para Sistemas Distribuídos)
+# Cache com Redis 
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

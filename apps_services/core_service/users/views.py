@@ -6,19 +6,17 @@ from classes.models import Aula
 def dashboard(request):
     user = request.user
     
-    # Determinamos o tipo para o template
     is_professor = getattr(user, 'is_professor', False)
     is_aluno = getattr(user, 'is_aluno', False)
     is_admin = user.is_superuser
 
     context = {
         'user': user,
-        'is_professor': is_professor or is_admin, # Admin vê painel de professor para testes
+        'is_professor': is_professor or is_admin,
         'is_aluno': is_aluno,
         'tipo': 'Administrador' if is_admin else 'Professor' if is_professor else 'Aluno',
     }
     
-    # Buscamos aulas se for docente ou admin
     if is_professor or is_admin:
         context['aulas_recentes'] = Aula.objects.all().order_by('-data')[:5]
         
