@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Turma | SisPre{% endblock %}
+
+{% block content %}
+<div class="p-6 md:p-12 max-w-4xl mx-auto">
+    <header class="mb-10">
+        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2">Academic Provisioning</p>
+        <h1 class="text-3xl font-black text-white tracking-tight uppercase italic">Abrir Nova <span class="text-indigo-500">Turma</span></h1>
+        <p class="text-slate-500 text-xs font-medium mt-2 italic">Selecione uma disciplina da grade institucional para instanciar uma nova turma ativa.</p>
+    </header>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div class="bg-slate-900/40 p-8 md:p-10 rounded-3xl border border-white/5 shadow-2xl space-y-8">
+            
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Disciplina Institucional (Base)</label>
+                <div class="relative">
+                    <select name="disciplina" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 appearance-none cursor-pointer mono">
+                        <option value="" disabled selected>-- SELECIONAR_DISCIPLINA_ALVO --</option>
+                        {% for disc in disciplinas_disponiveis %}
+                            <option value="{{ disc.id }}">{{ disc.codigo }} // {{ disc.nome }} (CH: {{ disc.carga_horaria_total }}h)</option>
+                        {% endfor %}
+                    </select>
+                    <div class="absolute inset-y-0 right-5 flex items-center pointer-events-none text-slate-600">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ciclo / Semestre Letivo</label>
+                    <input type="text" name="semestre" placeholder="EX: 2026.1" required
+                        class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 mono">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Status Operacional</label>
+                    <div class="relative">
+                        <select name="ativa" class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 appearance-none mono">
+                            <option value="True">STATE_ACTIVE</option>
+                            <option value="False">STATE_ARCHIVED</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-5 flex items-center pointer-events-none text-slate-600">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-end items-center gap-6">
+                <a href="{% url 'dashboard' %}" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-white transition-all">
+                    Abortar Operação
+                </a>
+                <button type="submit" class="w-full md:w-auto px-12 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-lg shadow-indigo-900/30 transition-all transform hover:-translate-y-1">
+                    Inicializar Turma
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <footer class="mt-8 px-4">
+        <div class="flex items-center gap-2 text-slate-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-[9px] font-bold uppercase tracking-tight">Nota: Turmas inicializadas como STATE_ACTIVE aparecerão imediatamente no dashboard dos alunos matriculados.</p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

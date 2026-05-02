@@ -1,219 +1,337 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Sistema de Frequência UFVJM</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top left, #1e293b, #020617);
-            background-attachment: fixed;
-            min-height: 100vh;
-        }
-        .glass-deep {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-        }
-        .glass-card:hover {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-        .modal-overlay {
-            background: rgba(2, 6, 23, 0.85);
-            backdrop-filter: blur(8px);
-            display: none;
-        }
-        .modal-overlay.active {
-            display: flex;
-        }
-        @keyframes progress {
-            from { width: 100%; }
-            to { width: 0%; }
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8 text-slate-300">
+{% extends 'base.html' %}
 
-    <div id="qrModal" class="modal-overlay fixed inset-0 z-50 items-center justify-center p-4">
-        <div class="glass-deep max-w-sm w-full rounded-[2rem] p-8 text-center shadow-2xl scale-95 transition-transform duration-300">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-white tracking-tight">QR Code Dinâmico</h3>
-                <button onclick="closeQRModal()" class="text-slate-400 hover:text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+{% block extra_style %}
+    @keyframes scan {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100%); }
+    }
+    .scanner-line {
+        height: 2px;
+        background: linear-gradient(to right, transparent, #6366f1, transparent);
+        animation: scan 2s linear infinite;
+    }
+    .modal-overlay { 
+        background: rgba(2, 6, 23, 0.95); 
+        backdrop-filter: blur(12px); 
+        display: none; 
+    }
+    .modal-overlay.active { display: flex; }
+    
+    .glass-card-modern {
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 1.25rem;
+    }
+
+    /* Acessibilidade: Foco visível para navegação via teclado */
+    a:focus-visible, button:focus-visible {
+        outline: 2px solid #6366f1;
+        outline-offset: 4px;
+    }
+
+    .btn-primary-modern {
+        background: #6366f1;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-primary-modern:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5);
+    }
+    .admin-stat-card {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.8));
+        border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+{% endblock %}
+
+{% block content %}
+    <!-- MODAL DO QR CODE (Restrito ao Professor) -->
+    {% if is_professor %}
+    <div id="qrModal" 
+         class="modal-overlay fixed inset-0 z-[100] items-center justify-center p-6"
+         role="dialog" 
+         aria-labelledby="modalTitle" 
+         aria-modal="true">
+        <div class="max-w-md w-full bg-slate-900 rounded-[2.5rem] p-10 border border-indigo-500/30 shadow-[0_0_100px_rgba(99,102,241,0.2)]">
+            <div class="flex flex-col items-center">
+                <div class="w-12 h-1 bg-slate-800 rounded-full mb-8"></div>
+                <h3 id="modalTitle" class="text-2xl font-bold text-white mb-2 italic">Token de Presença</h3>
+                <p class="text-xs text-slate-400 mono mb-8 uppercase tracking-widest text-center">Protocolo: QR-DYNAMIC-AUTH-V1</p>
+                
+                <div class="relative bg-white p-6 rounded-3xl mb-8 group overflow-hidden">
+                    <div class="absolute inset-0 scanner-line opacity-20"></div>
+                    <img id="qrImage" src="" alt="QR Code dinâmico para registro de presença" class="w-64 h-64 relative z-10">
+                </div>
+
+                <div class="w-full space-y-4" aria-label="Progresso de expiração do token">
+                    <div class="flex justify-between text-[10px] mono text-slate-500 uppercase tracking-tighter">
+                        <span>Ciclo de Atualização</span>
+                        <span id="timerText" aria-live="polite">30s</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div id="progressBar" class="bg-indigo-500 h-full w-full transition-all duration-[30000ms] ease-linear"></div>
+                    </div>
+                </div>
+
+                <button onclick="closeQRModal()" 
+                        class="mt-10 w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-sm transition-all border border-white/5 focus:ring-2 focus:ring-indigo-500">
+                    Fechar Painel
                 </button>
-            </div>
-            <div class="bg-white p-4 rounded-3xl inline-block mb-6 shadow-[0_0_50px_rgba(59,130,246,0.3)]">
-                <img id="qrImage" src="" alt="QR Code" class="w-64 h-64 rounded-xl">
-            </div>
-            <p class="text-sm text-slate-400 mb-2 font-medium">Sessão de frequência ativa</p>
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-blue-500 h-full animate-[progress_30s_linear_infinite]"></div>
             </div>
         </div>
     </div>
+    {% endif %}
 
-    <div class="glass-deep w-full max-w-6xl mx-auto rounded-[2.5rem] shadow-2xl overflow-hidden">
-        <header class="p-8 md:p-12 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div class="p-6 md:p-10 max-w-7xl mx-auto">
+        <!-- HEADER DINÂMICO -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 border-b border-white/5 pb-10">
             <div>
-                <h1 class="text-4xl font-extrabold text-white tracking-tighter leading-tight">
-                    Olá, <span class="text-blue-400">{{ user.username }}</span>
-                </h1>
-                <div class="flex items-center gap-3 mt-2">
-                    <span class="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-500/20">
-                        {{ tipo }}
-                    </span>
-                    <span class="text-slate-500 text-sm font-medium">UFVJM • Campus Diamantina</span>
+                <p class="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-2">Terminal {% if user.is_superuser %}Administrativo{% else %}Acadêmico{% endif %}</p>
+                <h1 class="text-4xl font-black text-white tracking-tight italic">Olá, <span class="text-indigo-400">{{ user.username }}</span></h1>
+                <div class="flex items-center gap-4 mt-4">
+                    <div class="flex items-center gap-2 px-3 py-1 bg-slate-900 border border-white/5 rounded-full">
+                        <span class="status-dot bg-emerald-500"></span>
+                        <span class="text-[10px] font-bold text-slate-300 uppercase mono">{{ tipo }}</span>
+                    </div>
+                    <span class="text-slate-500 text-xs font-medium mono italic uppercase tracking-tighter">UFVJM // Campus JK</span>
                 </div>
             </div>
             
-            <form method="post" action="{% url 'account_logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="group flex items-center gap-2 px-6 py-3 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl transition-all duration-300 font-bold text-sm uppercase tracking-widest">
-                    Sair
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                </button>
-            </form>
+            <nav class="flex gap-3" aria-label="Ações rápidas">
+                {% if is_aluno %}
+                    <a href="{% url 'registrar_presenca_camera' %}" class="btn-primary-modern px-8 py-3 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-900/20">
+                        Scanner de Presença
+                    </a>
+                {% elif is_professor and not user.is_superuser %}
+                    <a href="{% url 'abrir_turma' %}" class="px-6 py-3 bg-white/5 border border-white/10 text-white hover:bg-white/10 rounded-xl transition-all font-bold text-xs uppercase tracking-widest">
+                        Configurar Turma
+                    </a>
+                    <a href="{% url 'registrar_aula' %}" class="btn-primary-modern px-8 py-3 text-white rounded-xl font-bold text-xs uppercase tracking-widest">
+                        Lançar Aula Hoje
+                    </a>
+                {% endif %}
+            </nav>
         </header>
 
-        <main class="p-8 md:p-12">
-            {% if is_professor %}
-                <section class="space-y-10">
-                    <div class="flex flex-col sm:flex-row justify-between items-end sm:items-center gap-4">
-                        <h2 class="text-2xl font-bold text-white tracking-tight uppercase tracking-widest text-sm">Controle de Disciplinas</h2>
-                        <a href="/admin/classes/aula/add/" class="flex items-center gap-2 px-8 py-4 bg-white text-slate-950 hover:bg-blue-400 hover:text-white transition-all rounded-2xl font-black text-xs uppercase tracking-tighter shadow-xl shadow-blue-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Agendar Aula
+        {% if user.is_superuser %}
+            <!-- VISÃO DO ADMINISTRADOR (Centro de Comando) -->
+            <section class="space-y-10">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] px-2">Gestão de Infraestrutura</h2>
+                    <span class="h-[1px] flex-1 bg-white/5 mx-4" aria-hidden="true"></span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Departamentos -->
+                    <a href="{% url 'gestao_departamentos' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Estrutura</p>
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Departamentos</h3>
+                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">CONFIG_DEPT_ROOT</p>
+                    </a>
+
+                    <!-- Usuários (Telas de criação que fizemos) -->
+                    <a href="{% url 'gestao_usuarios' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Identidades</p>
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Usuários</h3>
+                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">USER_PROVISIONING</p>
+                    </a>
+
+                    <!-- Salas e Geofencing (Configuração de Rede) -->
+                    <a href="#" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Rede Acadêmica</p>
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Salas & IPs</h3>
+                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">GEO_FENCING_SENSORS</p>
+                    </a>
+
+                    <!-- Auditoria (Django Admin) -->
+                    <a href="{% url 'admin:index' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Auditoria</p>
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Logs do Sistema</h3>
+                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">HISTORY_MONITOR</p>
+                    </a>
+                </div>
+
+                <!-- Monitor de Serviços (Valorização técnica da disciplina de SD) -->
+                <div class="glass-card-modern p-8 border border-white/5">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Status dos Serviços Distribuídos</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="space-y-1">
+                            <p class="text-[9px] font-bold text-slate-600 uppercase">Redis Server</p>
+                            <p class="text-xs font-bold text-slate-300 mono">CONNECTED // DB_CACHE_1</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[9px] font-bold text-slate-600 uppercase">Celery Worker</p>
+                            <p class="text-xs font-bold text-slate-300 mono">LISTENING // RABBITMQ_QUEUES</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[9px] font-bold text-slate-600 uppercase">PostgreSQL</p>
+                            <p class="text-xs font-bold text-slate-300 mono">IDLE // PENDING_MIGRATION</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        {% elif is_professor %}
+            <!-- VISÃO DO PROFESSOR (Sessões e Turmas) -->
+            {% for aula in aulas_recentes %}
+                {% if aula.is_ativa %}
+                <section class="mb-12" aria-label="Sessão ativa">
+                    <div class="glass-card-modern p-1 bg-gradient-to-r from-indigo-500/20 to-transparent">
+                        <div class="bg-slate-950/80 rounded-[1.15rem] p-6 flex flex-col lg:flex-row justify-between items-center gap-6">
+                            <div class="flex items-center gap-5">
+                                <div class="relative">
+                                    <div class="w-14 h-14 bg-indigo-600/20 rounded-xl flex items-center justify-center text-indigo-400 border border-indigo-500/30">
+                                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-slate-950 rounded-full animate-ping"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-indigo-400 uppercase mono mb-1 block">{{ aula.turma.disciplina.codigo }}</span>
+                                    <h3 class="text-xl font-bold text-white tracking-tight italic">{{ aula.turma.disciplina.nome }}</h3>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-wider">
+                                        SALA: {{ aula.sala.nome }} • TÉRMINO: {{ aula.horario_fim }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button data-url="{% url 'visualizar_qr_code' aula.id %}" onclick="handleOpenModal(this)" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all focus:ring-2">Projetar QR Code</button>
+                                <a href="{% url 'encerrar_aula' aula.id %}" class="px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl font-bold text-[10px] uppercase tracking-widest border border-red-500/20 transition-all focus:ring-2">Finalizar</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+            {% endfor %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for turma in minhas_turmas %}
+                <div class="glass-card-modern p-6 hover:border-indigo-500/40 transition-all group relative border border-white/5">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="text-[9px] font-bold bg-slate-800 text-indigo-400 px-3 py-1 rounded-md uppercase mono">{{ turma.disciplina.codigo }}</span>
+                        <a href="{% url 'gerenciar_alunos_disciplina' turma.id %}" aria-label="Gerenciar alunos" class="text-slate-500 hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         </a>
                     </div>
-
-                    <div class="glass-card rounded-[2rem] overflow-hidden">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-white/5 bg-white/5">
-                                    <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Disciplina</th>
-                                    <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Horário</th>
-                                    <th class="p-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-white/5">
-                                {% for aula in aulas_recentes %}
-                                    {% with is_ativa=aula.is_ativa %}
-                                    <tr class="{% if not is_ativa or aula.encerrada_manualmente %}opacity-30 grayscale{% else %}hover:bg-white/[0.02]{% endif %} transition-all">
-                                        <td class="p-6">
-                                            <div class="text-lg font-bold text-white tracking-tight">{{ aula.disciplina.nome }}</div>
-                                            <div class="text-xs text-slate-500 font-medium mt-1">Cód: {{ aula.disciplina.codigo }}</div>
-                                        </td>
-                                        <td class="p-6 text-sm">
-                                            <div class="flex items-center gap-2 text-slate-200">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                {{ aula.horario_inicio|time:"H:i" }} — {{ aula.horario_fim|time:"H:i" }}
-                                            </div>
-                                            <div class="text-slate-500 mt-1 font-medium italic">{{ aula.sala.nome }}</div>
-                                        </td>
-                                        <td class="p-6">
-                                            <div class="flex items-center justify-center gap-3">
-                                                {% if is_ativa and not aula.encerrada_manualmente %}
-                                                    <button 
-                                                        type="button"
-                                                        data-url="{% url 'visualizar_qr_code' aula.id %}" 
-                                                        onclick="handleOpenModal(this)" 
-                                                        class="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-400 transition-all shadow-lg shadow-blue-500/20">
-                                                        QR Code
-                                                    </button>
-                                                    
-                                                    <form method="post" action="{% url 'encerrar_aula' aula.id %}" onsubmit="return confirm('Deseja realmente encerrar esta aula? Novos registros de presença serão bloqueados.')" class="inline">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl border border-red-500/20 transition-all text-xs font-bold">
-                                                            Encerrar
-                                                        </button>
-                                                    </form>
-                                                {% else %}
-                                                    <div class="flex flex-col items-center opacity-60">
-                                                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-tighter">Sessão Finalizada</span>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-1 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endwith %}
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="3" class="p-12 text-center text-slate-500 font-medium italic">Nenhuma aula ativa para o seu perfil.</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <h3 class="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors italic leading-tight">{{ turma.disciplina.nome }}</h3>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ turma.semestre }}</p>
+                    <div class="mt-8">
+                        <a href="{% url 'relatorio_presenca_disciplina' turma.id %}" class="block text-center py-3 bg-slate-900 hover:bg-indigo-600/10 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-indigo-400 border border-white/5 transition-all">Relatório Completo</a>
                     </div>
-                </section>
-            {% endif %}
+                </div>
+                {% endfor %}
+            </div>
 
-            {% if is_aluno %}
-                <section class="max-w-2xl mx-auto text-center py-12">
-                    <div class="w-20 h-20 bg-blue-500/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-blue-500/20 shadow-[0_0_40px_rgba(59,130,246,0.1)]">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09a2.03 2.03 0 00.15-.194m15.34-15.34a2.029 2.029 0 00-2.83 2.83m-15.34 15.34a2.029 2.029 0 002.83-2.83m0 0a2.029 2.029 0 002.83 2.83m0 0a2.029 2.029 0 002.83-2.83m0 0a2.029 2.029 0 002.83 2.83" />
-                        </svg>
+        {% elif is_aluno %}
+            <!-- VISÃO DO ESTUDANTE (Engajamento e Limite de 25%) -->
+            <div class="lg:col-span-12">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] px-2 italic">Engajamento e Limite de Faltas (25%)</h2>
+                    <span class="h-[1px] flex-1 bg-white/5 mx-4" aria-hidden="true"></span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for disciplina in disciplinas_aluno %}
+                    <div class="glass-card-modern p-6 border-l-2 border-l-indigo-500 bg-slate-900/20 flex flex-col justify-between min-h-[320px]">
+                        <div>
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-[10px] font-bold text-indigo-400 mono uppercase tracking-tighter">{{ disciplina.codigo }}</span>
+                                <span class="text-[10px] font-bold text-emerald-400 mono">{{ disciplina.porcentagem_frequencia }}% FREQ.</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-6 tracking-tight italic leading-tight">{{ disciplina.nome }}</h3>
+                        </div>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="bg-slate-950 p-3 rounded-xl border border-white/5">
+                                    <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">Presença</p>
+                                    <p class="text-lg font-black text-emerald-400 mono">{{ disciplina.horas_presenca }}<span class="text-xs ml-0.5">h</span></p>
+                                </div>
+                                <div class="bg-slate-950 p-3 rounded-xl border border-white/5">
+                                    <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">Faltas</p>
+                                    <p class="text-lg font-black text-amber-500 mono">{{ disciplina.horas_falta }}<span class="text-xs ml-0.5">h</span></p>
+                                </div>
+                            </div>
+
+                            <div class="bg-indigo-500/5 p-3 rounded-xl border border-indigo-500/10 flex justify-between items-center">
+                                <div>
+                                    <p class="text-[8px] font-bold text-indigo-400/80 uppercase">Limite de Faltas (25%)</p>
+                                    <p class="text-xs font-bold text-slate-300 mono">{{ disciplina.limite_faltas_horas }}h permitidas</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[8px] font-bold text-slate-500 uppercase">Total Disciplina</p>
+                                    <p class="text-xs font-bold text-slate-400 mono">{{ disciplina.carga_horaria_total }}h</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-[9px] font-bold uppercase mono">
+                                <span class="text-slate-500">Status de Aprovação</span>
+                                {% if disciplina.porcentagem_frequencia >= 75 %}
+                                    <span class="text-emerald-500" role="status">Regular</span>
+                                {% else %}
+                                    <span class="text-red-500 animate-pulse" role="status">Risco de Infrequência</span>
+                                {% endif %}
+                            </div>
+                            <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-white/5" role="progressbar" aria-valuenow="{{ disciplina.porcentagem_frequencia }}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="{% if disciplina.porcentagem_frequencia >= 75 %}bg-indigo-500{% else %}bg-red-500{% endif %} h-full transition-all duration-1000" 
+                                     style="width: {{ disciplina.porcentagem_frequencia }}%"></div>
+                            </div>
+                        </div>
                     </div>
-                    <h2 class="text-3xl font-black text-white mb-4 tracking-tight">Validar Minha Presença</h2>
-                    <p class="text-slate-400 leading-relaxed text-lg font-light max-w-lg mx-auto">
-                        Mantenha sua geolocalização ativa e escaneie o código dinâmico projetado para registrar sua frequência institucional.
-                    </p>
-                </section>
-            {% endif %}
-        </main>
-
-        <footer class="p-8 border-t border-white/5 bg-black/10 flex justify-between items-center">
-            <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest font-mono">UFVJM — SISTEMAS DISTRIBUÍDOS</span>
-            <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest font-mono">2026</span>
-        </footer>
+                {% endfor %}
+                </div>
+            </div>
+        {% endif %}
     </div>
+{% endblock %}
 
+{% block extra_js %}
     <script>
-        // CORREÇÃO: Função que lê o data-attribute para evitar erro de linter
+        let qrInterval;
+        
         function handleOpenModal(button) {
             const url = button.getAttribute('data-url');
-            openQRModal(url);
-        }
-
-        function openQRModal(url) {
             const modal = document.getElementById('qrModal');
-            const img = document.getElementById('qrImage');
-            img.src = url;
+            const progress = document.getElementById('progressBar');
+            
+            document.getElementById('qrImage').src = url;
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => modal.querySelector('button').focus(), 100);
+
+            const startTimer = () => {
+                progress.style.transition = 'none';
+                progress.style.width = '100%';
+                setTimeout(() => {
+                    progress.style.transition = 'width 30000ms linear';
+                    progress.style.width = '0%';
+                }, 50);
+            };
+
+            startTimer();
+            qrInterval = setInterval(() => {
+                document.getElementById('qrImage').src = url + '?t=' + new Date().getTime();
+                startTimer();
+            }, 30000);
         }
 
         function closeQRModal() {
             const modal = document.getElementById('qrModal');
+            if(!modal) return;
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
+            if (qrInterval) clearInterval(qrInterval);
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('qrModal');
-            if (event.target == modal) closeQRModal();
-        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('qrModal').classList.contains('active')) {
+                closeQRModal();
+            }
+        });
     </script>
-</body>
-</html>
+{% endblock %}

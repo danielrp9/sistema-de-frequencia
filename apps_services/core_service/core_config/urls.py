@@ -1,14 +1,17 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
-from users.views import dashboard
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/accounts/login/'), name='index'),
+    # Redireciona a raiz para o dashboard
+    path('', RedirectView.as_view(url='/dashboard/', permanent=True)),
     
     path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')), 
-    path('classes/', include('classes.urls')),
+    path('accounts/', include('allauth.urls')),
     
-    path('dashboard/', dashboard, name='dashboard'),
+    # APP URLS (Sem duplicatas)
+    path('dashboard/', include('users.urls')), 
+    path('academic/', include('academic.urls')), 
+    path('classes/', include('classes.urls')),
+    path('presence/', include('presence_service.urls')),
 ]

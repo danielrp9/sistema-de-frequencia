@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8 min-h-[80vh] flex items-center justify-center">
+    <div class="bg-slate-900/60 max-w-sm w-full rounded-[2rem] p-10 text-center shadow-2xl border border-white/5 relative overflow-hidden">
+        <!-- Barra de Status Superior -->
+        <div class="absolute top-0 left-0 w-full h-1 {% if sucesso %}bg-emerald-500{% else %}bg-red-500{% endif %} opacity-50"></div>
+        
+        {% if sucesso %}
+            <div class="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h2 class="text-xl font-black text-white uppercase tracking-tight mb-2">Presença Confirmada</h2>
+            <p class="text-slate-500 text-[11px] mono uppercase tracking-wider leading-relaxed">
+                DATA_SYNC: SUCCESS<br>
+                DISCIPLINA: {{ aula.disciplina.nome }}
+            </p>
+        {% else %}
+            <div class="w-20 h-20 bg-red-500/10 text-red-400 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+                <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
+            </div>
+            <h2 class="text-xl font-black text-white uppercase tracking-tight mb-2">Falha na Validação</h2>
+            <p class="text-red-400/80 text-[10px] mono uppercase leading-relaxed">{{ erro }}</p>
+        {% endif %}
+
+        <div class="mt-12 space-y-4">
+            <div class="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]">Retornando ao terminal</div>
+            <div class="w-16 bg-slate-800 h-1 rounded-full mx-auto overflow-hidden">
+                <div class="bg-indigo-500 h-full w-full animate-progress-shrink"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes progress-shrink { from { width: 100%; } to { width: 0%; } }
+    .animate-progress-shrink { animation: progress-shrink 3s linear forwards; }
+</style>
+
+<script>
+    setTimeout(() => { window.location.href = "{% url 'dashboard' %}"; }, 3200);
+</script>
+{% endblock %}

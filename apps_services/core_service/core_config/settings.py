@@ -8,9 +8,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'chave-padrao-caso-nao-encontre-env')
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = []
 
-# Aplicações Instaladas
+ALLOWED_HOSTS = ['*'] 
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -20,20 +24,19 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites', 
 
-   'rest_framework',         
+    'rest_framework',         
     'corsheaders',            
     'allauth',                
     'allauth.account',        
     'allauth.socialaccount',
     'simple_history',         
 
-
     'users',     
     'academic',  
     'classes',   
+    'presence_service',
 ]
 
-# Configurações de Autenticação (Allauth)
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -42,12 +45,14 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'users.User' 
 
-# --- Configurações Allauth 
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+# CONFIGURAÇÃO ALLAUTH ATUALIZADA (Django 6+)
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+# Removido ACCOUNT_EMAIL_REQUIRED conforme o Warning recomendou
 ACCOUNT_EMAIL_VERIFICATION = 'none' 
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+
 LOGIN_REDIRECT_URL = '/dashboard/' 
+LOGOUT_REDIRECT_URL = '/accounts/login/'
  
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -82,16 +87,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core_config.wsgi.application'
 
-# Configuração de E-mail com Resend 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.resend.com'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'resend'
-EMAIL_HOST_PASSWORD = os.getenv('RESEND_API_KEY')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
-
-# Banco de Dados SQLite 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -106,7 +101,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
@@ -115,7 +109,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Cache com Redis 
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -126,15 +119,8 @@ CACHES = {
     }
 }
 
-# Mensageria com Celery
 CELERY_BROKER_URL = 'pyamqp://guest@localhost//'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
-# Segurança Física: Ranges de IP da UFVJM
-UNIVERSIDADE_IP_RANGES = [
-    '127.0.0.1',        # Localhost
-    '192.168.0.0/16',   # Rede interna
-    '200.131.0.0/16',   # Range UFVJM
-    '10.0.0.0/8',
-]
+UNIVERSIDADE_IP_RANGES = ['127.0.0.1', '192.168.0.0/16', '200.131.0.0/16', '10.0.0.0/8']

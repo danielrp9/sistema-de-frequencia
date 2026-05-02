@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-10">
+    <div class="mb-10">
+        <a href="{% url 'detalhes_departamento' curso.department.id %}" class="inline-flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-indigo-400 transition-colors">
+            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            Root: {{ curso.department.code }}
+        </a>
+        <h1 class="text-4xl font-black text-white tracking-tight mt-4 uppercase italic">Grade: <span class="text-indigo-500">{{ curso.name }}</span></h1>
+    </div>
+
+    <section class="space-y-6">
+        <div class="flex justify-between items-center bg-slate-900/50 p-5 rounded-2xl border border-white/5">
+            <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Disciplinas Institucionais Cadastradas</h2>
+            <button onclick="document.getElementById('modal-disciplina').classList.remove('hidden')" class="px-5 py-2 bg-indigo-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-indigo-500 transition-all">
+                + Inserir Disciplina
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for disc in disciplinas %}
+            <div class="bg-slate-900/30 p-6 rounded-2xl border border-white/5 flex justify-between items-center group hover:border-indigo-500/30 transition-all">
+                <div>
+                    <span class="text-[10px] font-bold text-indigo-400 mono">{{ disc.codigo }}</span>
+                    <h3 class="text-lg font-bold text-white mt-1 leading-tight">{{ disc.nome }}</h3>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Total</p>
+                    <p class="text-xl font-black text-white mono">{{ disc.carga_horaria_total }}h</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-16 text-center bg-slate-900/20 rounded-3xl border border-dashed border-white/10">
+                <p class="text-slate-600 text-xs font-medium uppercase tracking-widest">Grade curricular vazia</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<!-- Modal -->
+<div id="modal-disciplina" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+    <form method="post" class="bg-slate-900 p-8 rounded-3xl w-full max-w-md border border-white/10 shadow-2xl">
+        {% csrf_token %}
+        <input type="hidden" name="btn_disciplina" value="1">
+        
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-lg font-bold text-white uppercase tracking-tight">Nova Disciplina Base</h2>
+            <button type="button" onclick="document.getElementById('modal-disciplina').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors">✕</button>
+        </div>
+
+        <div class="space-y-4">
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome da Disciplina</label>
+                <input type="text" name="nome" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Código (ID)</label>
+                    <input type="text" name="codigo" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none mono">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Carga Horária</label>
+                    <input type="number" name="ch" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none mono">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest mt-4">
+                Confirmar Registro
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

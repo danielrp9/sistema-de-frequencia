@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-10 min-h-[90vh] flex flex-col items-center justify-center">
+    <div class="bg-slate-900/60 max-w-lg w-full rounded-[2.5rem] p-8 text-center border border-white/10 shadow-2xl relative overflow-hidden">
+        
+        <!-- Cyber HUD Elements -->
+        <div class="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-indigo-500/40"></div>
+        <div class="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-indigo-500/40"></div>
+
+        <header class="mb-10">
+            <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-2">Input Sensor</p>
+            <h1 class="text-3xl font-black text-white tracking-tighter italic uppercase">Scanner de <span class="text-indigo-500">Presença</span></h1>
+        </header>
+
+        <!-- Container do Scanner -->
+        <div class="relative rounded-2xl overflow-hidden border border-white/10 bg-black shadow-[0_0_50px_rgba(99,102,241,0.1)] mb-8">
+            <div id="reader" class="w-full h-72"></div>
+            <!-- Overlay HUD -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="w-48 h-48 border border-indigo-500/50 rounded-lg relative">
+                    <div class="absolute inset-0 scanner-hud-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="status-message" class="text-slate-500 text-[10px] font-bold uppercase mono tracking-[0.2em] animate-pulse">
+            Sincronizando hardware...
+        </div>
+
+        <div id="error-log" class="mt-6 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[9px] font-bold mono uppercase hidden"></div>
+
+        <div class="mt-10 border-t border-white/5 pt-6">
+            <a href="{% url 'dashboard' %}" class="text-slate-600 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest">
+                Terminar Captura
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes scan-hud { 0% { top: 0%; } 100% { top: 100%; } }
+    .scanner-hud-line {
+        height: 1px;
+        background: #6366f1;
+        box-shadow: 0 0 15px #6366f1;
+        width: 100%;
+        position: absolute;
+        animation: scan-hud 2s linear infinite;
+    }
+</style>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    const statusMsg = document.getElementById('status-message');
+    const errorLog = document.getElementById('error-log');
+
+    function onScanSuccess(decodedText) {
+        scanner.stop().then(() => {
+            statusMsg.innerText = "TOKEN_DETECTED: PROCESSING...";
+            statusMsg.classList.replace('text-slate-500', 'text-indigo-400');
+            processarPresenca(decodedText);
+        });
+    }
+
+    function processarPresenca(decodedText) {
+        try {
+            const url = new URL(decodedText);
+            const params = new URLSearchParams(url.search);
+            const aulaId = params.get('id');
+            const token = params.get('token');
+
+            if (!aulaId || !token) throw new Error("INVALID_TOKEN_FORMAT");
+
+            statusMsg.innerText = "FETCHING_GEO_COORDINATES...";
+
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const formData = new FormData();
+                formData.append('aula_id', aulaId);
+                formData.append('token', token);
+                formData.append('latitude', pos.coords.latitude);
+                formData.append('longitude', pos.coords.longitude);
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+                fetch("{% url 'registrar_presenca' %}", { method: 'POST', body: formData })
+                .then(res => res.text())
+                .then(html => { document.body.innerHTML = html; })
+                .catch(() => alert("NETWORK_ERROR: Verifique sua conexão."));
+            }, () => {
+                alert("GEO_ERROR: Permissão de localização obrigatória.");
+                location.reload();
+            }, { enableHighAccuracy: true });
+
+        } catch (e) {
+            alert("DECODE_ERROR: QR Code corrompido.");
+            location.reload();
+        }
+    }
+
+    const scanner = new Html5Qrcode("reader");
+    const config = { fps: 20, qrbox: { width: 220, height: 220 } };
+
+    scanner.start({ facingMode: "environment" }, config, onScanSuccess)
+    .then(() => {
+        statusMsg.innerText = "SENSOR_ONLINE: BUSCANDO_TOKEN";
+        statusMsg.classList.replace('text-slate-500', 'text-emerald-500');
+    })
+    .catch(err => {
+        statusMsg.innerText = "HARDWARE_FAILURE";
+        errorLog.innerText = "CRITICAL: " + err;
+        errorLog.classList.remove('hidden');
+    });
+</script>
+{% endblock %}

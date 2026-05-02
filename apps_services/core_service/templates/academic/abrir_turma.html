@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Turma | SisPre{% endblock %}
+
+{% block content %}
+<div class="p-6 md:p-12 max-w-2xl mx-auto">
+    <header class="mb-10">
+        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2">Academic Workflow</p>
+        <h1 class="text-3xl font-black text-white tracking-tight">Provisionar <span class="text-slate-400">Nova Turma</span></h1>
+        <p class="text-slate-500 text-xs font-medium mt-2">Selecione a disciplina base da grade curricular e defina o ciclo letivo.</p>
+    </header>
+
+    <form method="post" class="bg-slate-900/40 p-8 md:p-10 rounded-3xl border border-white/5 shadow-2xl space-y-8">
+        {% csrf_token %}
+        
+        <div class="space-y-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Disciplina Institucional</label>
+            <div class="relative">
+                <select name="disciplina" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 appearance-none cursor-pointer mono">
+                    <option value="" disabled selected>-- SELECIONAR_DISCIPLINA_BASE --</option>
+                    {% for disc in disciplinas_disponiveis %}
+                        <option value="{{ disc.id }}">{{ disc.codigo }} | {{ disc.nome }} ({{ disc.carga_horaria_total }}H)</option>
+                    {% endfor %}
+                </select>
+                <div class="absolute inset-y-0 right-5 flex items-center pointer-events-none text-slate-600">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Semestre Letivo</label>
+                <input type="text" name="semestre" required placeholder="ex: 2026.1"
+                    class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 mono">
+            </div>
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Status Inicial</label>
+                <select name="ativa" class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 appearance-none mono">
+                    <option value="True">STATUS_ACTIVE</option>
+                    <option value="False">STATUS_INACTIVE</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="pt-6 border-t border-white/5 space-y-4">
+            <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-lg shadow-indigo-900/20 transition-all">
+                Confirmar Abertura
+            </button>
+            <a href="{% url 'dashboard' %}" class="block text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest hover:text-white transition-colors">Cancelar Operação</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,7 +1,14 @@
 from django.urls import path
-from .views import visualizar_qr_code, encerrar_aula # Adicione a importação aqui
+from . import views
+from academic.views import gerenciar_alunos_disciplina
 
 urlpatterns = [
-    path('aula/<int:aula_id>/qrcode/', visualizar_qr_code, name='visualizar_qr_code'),
-    path('aula/<int:aula_id>/encerrar/', encerrar_aula, name='encerrar_aula'),
+    # Rota para o formulário de lançamento de aula do professor
+    path('lancar/', views.registrar_aula, name='registrar_aula'),
+    
+    # Rotas de gerenciamento de aula e QR Code
+    path('qr/<int:aula_id>/', views.visualizar_qr_code, name='visualizar_qr_code'),
+    path('encerrar/<int:aula_id>/', views.encerrar_aula, name='encerrar_aula'),
+    path('scanner/', views.registrar_presenca_camera, name='registrar_presenca_camera'),
+    path('relatorio/<int:turma_id>/', views.relatorio_presenca_disciplina, name='relatorio_presenca_disciplina'),
 ]

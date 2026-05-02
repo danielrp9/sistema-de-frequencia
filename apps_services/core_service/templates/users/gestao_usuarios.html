@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-10">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+        <div>
+            <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2">Identity Service</p>
+            <h1 class="text-4xl font-black text-white tracking-tight uppercase italic">Gestão de <span class="text-indigo-500">Usuários</span></h1>
+        </div>
+        <a href="{% url 'criar_usuario_manual' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-900/20 hover:bg-indigo-500 transition-all">
+            + Provisionar Usuário
+        </a>
+    </header>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div class="bg-slate-900/40 p-6 rounded-2xl border border-white/5 flex justify-between items-center">
+            <div>
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Docentes Ativos</p>
+                <p class="text-3xl font-black text-white mono">{{ total_professores }}</p>
+            </div>
+            <div class="text-indigo-500/20"><svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+        </div>
+        <div class="bg-slate-900/40 p-6 rounded-2xl border border-white/5 flex justify-between items-center">
+            <div>
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Discentes Ativos</p>
+                <p class="text-3xl font-black text-white mono">{{ total_alunos }}</p>
+            </div>
+            <div class="text-emerald-500/20"><svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-slate-900/20 rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
+        <div class="p-6 border-b border-white/5 flex gap-4 bg-slate-900/40">
+            <a href="?role=all" class="text-[10px] font-bold text-slate-400 hover:text-white uppercase tracking-widest">Todos</a>
+            <a href="?role=professor" class="text-[10px] font-bold text-slate-400 hover:text-indigo-400 uppercase tracking-widest border-l border-white/10 pl-4">Professores</a>
+            <a href="?role=aluno" class="text-[10px] font-bold text-slate-400 hover:text-emerald-400 uppercase tracking-widest border-l border-white/10 pl-4">Alunos</a>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse mono">
+                <thead class="bg-slate-950/50">
+                    <tr>
+                        <th class="p-6 text-[10px] font-bold uppercase text-slate-500">Usuário / ID</th>
+                        <th class="p-6 text-[10px] font-bold uppercase text-slate-500">Papel</th>
+                        <th class="p-6 text-[10px] font-bold uppercase text-slate-500">E-mail</th>
+                        <th class="p-6 text-right text-[10px] font-bold uppercase text-slate-500">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for user in usuarios %}
+                    <tr class="hover:bg-white/[0.02] transition-all">
+                        <td class="p-6">
+                            <span class="text-xs font-bold text-white uppercase">{{ user.username }}</span>
+                            <p class="text-[9px] text-slate-600 mt-1">SESS_ID: {{ user.id|stringformat:"04d" }}</p>
+                        </td>
+                        <td class="p-6">
+                            {% if user.is_superuser %}
+                                <span class="text-[9px] font-bold bg-white/5 text-white px-2 py-1 rounded">SYS_ADMIN</span>
+                            {% elif user.is_professor %}
+                                <span class="text-[9px] font-bold bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded">DOCENTE</span>
+                            {% elif user.is_aluno %}
+                                <span class="text-[9px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded">DISCENTE</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-6 text-xs text-slate-400">{{ user.email }}</td>
+                        <td class="p-6 text-right">
+                            <span class="w-2 h-2 inline-block rounded-full {% if user.is_active %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
