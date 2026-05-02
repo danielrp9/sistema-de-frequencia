@@ -107,7 +107,7 @@
                         Configurar Turma
                     </a>
                     <a href="{% url 'registrar_aula' %}" class="btn-primary-modern px-8 py-3 text-white rounded-xl font-bold text-xs uppercase tracking-widest">
-                        Lançar Aula Hoje
+                        Abrir Aula
                     </a>
                 {% endif %}
             </nav>
@@ -126,28 +126,28 @@
                     <a href="{% url 'gestao_departamentos' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
                         <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Estrutura</p>
                         <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Departamentos</h3>
-                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">CONFIG_DEPT_ROOT</p>
+                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">Gerenciamento Estrutural</p>
                     </a>
 
                     <!-- Usuários (Telas de criação que fizemos) -->
                     <a href="{% url 'gestao_usuarios' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
                         <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Identidades</p>
                         <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Usuários</h3>
-                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">USER_PROVISIONING</p>
+                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">Gerenciamento de Usuários</p>
                     </a>
 
                     <!-- Salas e Geofencing (Configuração de Rede) -->
                     <a href="#" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
                         <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Rede Acadêmica</p>
                         <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Salas & IPs</h3>
-                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">GEO_FENCING_SENSORS</p>
+                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">Gerenciamento de Geolocalização</p>
                     </a>
 
                     <!-- Auditoria (Django Admin) -->
                     <a href="{% url 'admin:index' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
                         <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Auditoria</p>
                         <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Logs do Sistema</h3>
-                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">HISTORY_MONITOR</p>
+                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">Monitoramento do Sistema</p>
                     </a>
                 </div>
 
@@ -160,7 +160,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div class="space-y-1">
                             <p class="text-[9px] font-bold text-slate-600 uppercase">Redis Server</p>
-                            <p class="text-xs font-bold text-slate-300 mono">CONNECTED // DB_CACHE_1</p>
+                            <p class="text-xs font-bold text-slate-300 mono">info</p>
                         </div>
                         <div class="space-y-1">
                             <p class="text-[9px] font-bold text-slate-600 uppercase">Celery Worker</p>
@@ -168,7 +168,7 @@
                         </div>
                         <div class="space-y-1">
                             <p class="text-[9px] font-bold text-slate-600 uppercase">PostgreSQL</p>
-                            <p class="text-xs font-bold text-slate-300 mono">IDLE // PENDING_MIGRATION</p>
+                            <p class="text-xs font-bold text-slate-300 mono">info</p>
                         </div>
                     </div>
                 </div>

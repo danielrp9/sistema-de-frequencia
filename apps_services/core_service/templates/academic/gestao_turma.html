@@ -53,8 +53,8 @@
             <!-- Listagem de Alunos Matriculados -->
             <div class="bg-slate-900/20 rounded-3xl border border-white/5 overflow-hidden">
                 <div class="p-6 border-b border-white/5 flex justify-between items-center bg-slate-900/40">
-                    <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Nodes Ativos (Alunos na Turma)</h2>
-                    <span class="text-[10px] font-bold text-indigo-400 mono">{{ alunos_matriculados|length }} TOTAL_RECORDS</span>
+                    <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic"> Alunos da Turma</h2>
+                    <span class="text-[10px] font-bold text-indigo-400 mono">{{ alunos_matriculados|length }} TOTAL</span>
                 </div>
                 
                 <div class="max-h-[500px] overflow-y-auto">
@@ -77,14 +77,14 @@
                                 </td>
                                 <td class="p-6 text-right">
                                     <span class="text-[8px] font-bold text-emerald-500/60 uppercase tracking-widest border border-emerald-500/20 px-2 py-1 rounded bg-emerald-500/5 mono">
-                                        Verified
+                                        Verificado
                                     </span>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
                                 <td class="p-20 text-center uppercase mono text-slate-600 text-[10px] tracking-widest italic">
-                                    Nenhum discente vinculado a esta instância.
+                                    Nenhum discente vinculado.
                                 </td>
                             </tr>
                             {% endfor %}

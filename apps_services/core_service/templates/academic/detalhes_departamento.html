@@ -14,7 +14,7 @@
         <!-- Coluna Cursos -->
         <section class="lg:col-span-7 space-y-6">
             <div class="flex justify-between items-center bg-slate-900/50 p-5 rounded-2xl border border-white/5">
-                <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cursos sob esta jurisdição</h2>
+                <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cursos</h2>
                 <button onclick="document.getElementById('modal-curso').classList.remove('hidden')" class="text-indigo-400 text-[10px] font-bold uppercase tracking-widest hover:text-indigo-300">+ Novo Curso</button>
             </div>
             
@@ -24,7 +24,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors leading-tight">{{ curso.name }}</h3>
-                            <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-1">Disciplinas Base: {{ curso.disciplinas.count }}</p>
+                            <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-1">Disciplinas: {{ curso.disciplinas.count }}</p>
                         </div>
                         <svg class="h-5 w-5 text-slate-700 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </div>
@@ -37,7 +37,7 @@
         <section class="lg:col-span-5 space-y-6">
             <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex justify-between items-center">
                 <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Corpo Docente</h2>
-                <span class="text-[10px] font-bold text-slate-600 mono">{{ todos_professores|length }} NODES</span>
+                <span class="text-[10px] font-bold text-slate-600 mono">{{ todos_professores|length }} REGISTRO</span>
             </div>
             
             <div class="grid grid-cols-1 gap-3">

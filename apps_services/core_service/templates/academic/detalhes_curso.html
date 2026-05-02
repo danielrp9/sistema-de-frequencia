@@ -12,7 +12,7 @@
 
     <section class="space-y-6">
         <div class="flex justify-between items-center bg-slate-900/50 p-5 rounded-2xl border border-white/5">
-            <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Disciplinas Institucionais Cadastradas</h2>
+            <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Disciplinas Cadastradas</h2>
             <button onclick="document.getElementById('modal-disciplina').classList.remove('hidden')" class="px-5 py-2 bg-indigo-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-indigo-500 transition-all">
                 + Inserir Disciplina
             </button>
@@ -32,7 +32,7 @@
             </div>
             {% empty %}
             <div class="col-span-full py-16 text-center bg-slate-900/20 rounded-3xl border border-dashed border-white/10">
-                <p class="text-slate-600 text-xs font-medium uppercase tracking-widest">Grade curricular vazia</p>
+                <p class="text-slate-600 text-xs font-medium uppercase tracking-widest">Grade vazia</p>
             </div>
             {% endfor %}
         </div>
@@ -46,7 +46,7 @@
         <input type="hidden" name="btn_disciplina" value="1">
         
         <div class="flex justify-between items-center mb-8">
-            <h2 class="text-lg font-bold text-white uppercase tracking-tight">Nova Disciplina Base</h2>
+            <h2 class="text-lg font-bold text-white uppercase tracking-tight">Nova Disciplina</h2>
             <button type="button" onclick="document.getElementById('modal-disciplina').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors">✕</button>
         </div>
 

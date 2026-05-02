@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Nova Turma | SisPre{% endblock %}
+{% block title %}Nova Turma | SisPres{% endblock %}
 
 {% block content %}
 <div class="p-6 md:p-12 max-w-2xl mx-auto">
     <header class="mb-10">
-        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2">Academic Workflow</p>
+        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2">Visão Geral</p>
         <h1 class="text-3xl font-black text-white tracking-tight">Provisionar <span class="text-slate-400">Nova Turma</span></h1>
         <p class="text-slate-500 text-xs font-medium mt-2">Selecione a disciplina base da grade curricular e defina o ciclo letivo.</p>
     </header>
@@ -17,7 +17,7 @@
             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Disciplina Institucional</label>
             <div class="relative">
                 <select name="disciplina" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 appearance-none cursor-pointer mono">
-                    <option value="" disabled selected>-- SELECIONAR_DISCIPLINA_BASE --</option>
+                    <option value="" disabled selected>SELECIONAR DISCIPLINA</option>
                     {% for disc in disciplinas_disponiveis %}
                         <option value="{{ disc.id }}">{{ disc.codigo }} | {{ disc.nome }} ({{ disc.carga_horaria_total }}H)</option>
                     {% endfor %}
@@ -37,8 +37,8 @@
             <div class="space-y-2">
                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Status Inicial</label>
                 <select name="ativa" class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 appearance-none mono">
-                    <option value="True">STATUS_ACTIVE</option>
-                    <option value="False">STATUS_INACTIVE</option>
+                    <option value="True">STATUS ATIVO</option>
+                    <option value="False">STATUS INATIVO</option>
                 </select>
             </div>
         </div>
