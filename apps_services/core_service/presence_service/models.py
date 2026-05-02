@@ -13,7 +13,6 @@ class Presenca(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     
-    # CORREÇÃO: Permitindo nulo para evitar erro de constraint
     ip_registrado = models.GenericIPAddressField(null=True, blank=True)
 
     class Meta:

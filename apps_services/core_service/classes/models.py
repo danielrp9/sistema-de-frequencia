@@ -30,7 +30,7 @@ class Aula(models.Model):
             
         agora_dt = timezone.localtime()
         
-        # Comparação robusta com margem de segurança de 15 minutos
+        # Comparação com margem de segurança de 15 minutos
         inicio_dt = timezone.make_aware(timezone.datetime.combine(self.data, self.horario_inicio))
         fim_dt = timezone.make_aware(timezone.datetime.combine(self.data, self.horario_fim))
 

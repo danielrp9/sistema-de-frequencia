@@ -10,10 +10,6 @@ class PresencaSerializer(serializers.Serializer):
     longitude = serializers.FloatField()
 
     def validate(self, data):
-        """
-        Valida se a aula existe, se o token é idêntico ao gerado pelo professor
-        e se a aula ainda está dentro do horário permitido.
-        """
         try:
             aula = Aula.objects.get(id=data['aula_id'])
         except Aula.DoesNotExist:
@@ -27,6 +23,5 @@ class PresencaSerializer(serializers.Serializer):
         if not aula.is_ativa():
             raise serializers.ValidationError("A chamada para esta aula não está ativa.")
 
-        # Armazena a aula no contexto para a View acessar sem nova consulta ao banco
         self.context['aula'] = aula
         return data

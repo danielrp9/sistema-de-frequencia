@@ -48,7 +48,6 @@ def registrar_presenca(request):
                 })
 
             # 3. Registro ou Atualização da Presença
-            # Capturamos o IP e salvamos junto com a localização
             user_ip = get_client_ip(request)
 
             presenca, created = Presenca.objects.get_or_create(

@@ -3,7 +3,6 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    # Redireciona a raiz para o dashboard
     path('', RedirectView.as_view(url='/dashboard/', permanent=True)),
     
     path('admin/', admin.site.urls),

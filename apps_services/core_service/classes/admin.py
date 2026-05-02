@@ -3,7 +3,6 @@ from .models import Aula
 
 @admin.register(Aula)
 class AulaAdmin(admin.ModelAdmin):
-    # Alterado: 'disciplina' agora é acessada via 'turma'
     list_display = ('get_disciplina_nome', 'data', 'horario_inicio', 'peso_aula', 'encerrada_manualmente')
     list_filter = ('data', 'turma__disciplina', 'encerrada_manualmente')
     

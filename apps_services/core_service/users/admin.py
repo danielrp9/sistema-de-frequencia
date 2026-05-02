@@ -4,7 +4,6 @@ from .models import User, Aluno, Professor
 
 class MyUserAdmin(UserAdmin):
     model = User
-    # Garante que as flags apareçam na interface de edição
     fieldsets = UserAdmin.fieldsets + (
         ('Responsabilidades', {'fields': ('is_professor', 'is_aluno')}),
     )
@@ -32,5 +31,4 @@ class ProfessorAdmin(admin.ModelAdmin):
             obj.user.save()
         super().save_model(request, obj, form, change)
 
-# Registra o User com o formulário que criptografa senhas corretamente
 admin.site.register(User, MyUserAdmin)
