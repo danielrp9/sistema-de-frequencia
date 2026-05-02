@@ -62,7 +62,18 @@ pip install -r requirements.txt
 
 ---
 
-### 2. Variáveis de ambiente
+### 2. Configuração de Serviços de Infraestrutura
+
+É necessário que os servidores Redis e RabbitMQ estejam ativos no ambiente Linux:
+
+```bash
+sudo service redis-server start
+sudo service rabbitmq-server start
+```
+
+---
+
+### 3. Variáveis de ambiente
 
 Criar `.env` em:
 
@@ -118,7 +129,7 @@ Caso o Celery não esteja em execução:
 
 ---
 
-### 3. Banco de dados
+### 4. Banco de dados
 
 ```bash
 cd apps_services/core_service
@@ -128,7 +139,7 @@ python manage.py createsuperuser
 
 ---
 
-### 4. Execução
+### 5. Execução
 
 ```bash
 python manage.py runserver
@@ -312,5 +323,3 @@ A arquitetura já está preparada para evolução para um sistema distribuído c
 
 Daniel Rodrigues
 Joana Martins
-
-
