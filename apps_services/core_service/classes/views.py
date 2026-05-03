@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from datetime import timedelta
 
 from .models import Aula
@@ -15,8 +16,7 @@ from .serializers import AulaGradeSerializer
 @login_required
 def registrar_aula(request):
     """
-    Cria o registro da aula e redireciona ao Dashboard.
-    A aula agora é gerenciada através de um card de controle no Dashboard.
+    Cria o registro da aula com validação rigorosa de integridade.
     """
     is_professor = getattr(request.user, 'is_professor', False)
     is_admin = request.user.is_superuser
@@ -27,23 +27,33 @@ def registrar_aula(request):
     if request.method == "POST":
         turma_id = request.POST.get('turma')
         sala_id = request.POST.get('sala')
-        peso = int(request.POST.get('peso_aula', 2))
+        peso_str = request.POST.get('peso_aula', '2')
         
-        agora = timezone.localtime()
-        
-        # Cria a aula com o horário de início 5 minutos antes para garantir ativação imediata
-        # O redirecionamento para o dashboard impede a criação de duplicatas ao dar F5
-        Aula.objects.create(
-            turma_id=turma_id,
-            sala_id=sala_id,
-            peso_aula=peso,
-            data=agora.date(),
-            horario_inicio=(agora - timedelta(minutes=5)).time(),
-            horario_fim=(agora + timedelta(hours=peso)).time()
-        )
-        return redirect('dashboard')
+        # VALIDAÇÃO DE SEGURANÇA: Impede o IntegrityError do professor
+        if not turma_id or not sala_id:
+            messages.error(request, "ERRO_INTEGRITY: Turma ou Sala não selecionada.")
+            return redirect('registrar_aula')
 
-    # Administrador vê todas as turmas, professor vê apenas as suas
+        try:
+            peso = int(peso_str)
+            agora = timezone.localtime()
+            
+            # Criação do objeto com verificação de existência dos IDs
+            Aula.objects.create(
+                turma_id=int(turma_id),
+                sala_id=int(sala_id),
+                peso_aula=peso,
+                data=agora.date(),
+                horario_inicio=(agora - timedelta(minutes=5)).time(),
+                horario_fim=(agora + timedelta(hours=peso)).time()
+            )
+            messages.success(request, "SESSION_CREATED: Chamada inicializada com sucesso.")
+            return redirect('dashboard')
+        except (ValueError, TypeError) as e:
+            messages.error(request, f"ERRO_DATA: Dados inválidos fornecidos ({e}).")
+            return redirect('registrar_aula')
+
+    # Filtro de Turmas
     if request.user.is_superuser:
         minhas_turmas = Turma.objects.filter(ativa=True)
     else:
@@ -58,16 +68,15 @@ def registrar_aula(request):
 
 @login_required
 def visualizar_qr_code(request, aula_id):
-    """Gera o token dinâmico do QR Code para uma aula existente. Não cria novos registros."""
     aula = get_object_or_404(Aula, pk=aula_id)
     
     if not request.user.is_superuser:
         is_dono_aula = (aula.turma.professor.user == request.user)
         if not is_dono_aula:
-            return HttpResponse("Acesso negado: Você não tem permissão para esta chamada.", status=403)
+            return HttpResponse("Acesso negado: Permissão insuficiente.", status=403)
 
     if not aula.is_ativa():
-        return HttpResponse(f"Chamada inativa. (Horário: {aula.horario_inicio} - {aula.horario_fim})", status=403)
+        return HttpResponse(f"Chamada expirada.", status=403)
   
     agora = timezone.now()
     if agora > (aula.last_token_update + timedelta(seconds=30)):
@@ -79,7 +88,7 @@ def visualizar_qr_code(request, aula_id):
     protocol = 'https' if request.is_secure() else 'http'
     url_base = f"{protocol}://{host}"
     
-    dados_qr = f"{url_base}/presence/registrar/?id={aula.id}&token={aula.token_qr}"
+    dados_qr = f"{url_base}/presenca/registrar/?id={aula.id}&token={aula.token_qr}"
     
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(dados_qr)
@@ -99,8 +108,7 @@ def registrar_presenca_camera(request):
 @login_required
 def encerrar_aula(request, aula_id):
     aula = get_object_or_404(Aula, pk=aula_id)
-    is_autorizado = request.user.is_superuser or (aula.turma.professor.user == request.user)
-    if is_autorizado:
+    if request.user.is_superuser or (aula.turma.professor.user == request.user):
         aula.encerrada_manualmente = True
         aula.save()
     return redirect('dashboard')
@@ -108,8 +116,7 @@ def encerrar_aula(request, aula_id):
 @login_required
 def relatorio_presenca_disciplina(request, turma_id):
     turma = get_object_or_404(Turma, pk=turma_id)
-    is_autorizado = request.user.is_superuser or (turma.professor.user == request.user)
-    if not is_autorizado:
+    if not (request.user.is_superuser or (turma.professor.user == request.user)):
         return HttpResponse("Acesso negado.", status=403)
 
     aulas = Aula.objects.filter(turma=turma).order_by('data')
@@ -118,6 +125,7 @@ def relatorio_presenca_disciplina(request, turma_id):
     serializer = AlunoRelatorioSerializer(alunos, many=True, context={'disciplina': turma.disciplina})
     
     return render(request, 'classes/relatorio_disciplina.html', {
+        'disciplina': turma.disciplina, # Corrigido para bater com o template
         'turma': turma,
         'colunas_datas': colunas_datas,
         'lista_presenca': serializer.data
