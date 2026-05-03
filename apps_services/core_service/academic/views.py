@@ -1,8 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import Department, Course, Disciplina, Turma
+from .models import Department, Course, Disciplina, Turma, Sala
 from users.models import Professor, Aluno, User 
-# CORREÇÃO: Importando Aula do app correto (classes)
 from classes.models import Aula 
 import re
 
@@ -114,3 +113,20 @@ def gerenciar_alunos_disciplina(request, turma_id):
         'turma': turma,
         'alunos_matriculados': matriculados
     })
+
+@login_required
+def gestao_salas(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    
+    if request.method == "POST":
+        nome = request.POST.get('nome')
+        ip = request.POST.get('ip_rede')
+        Sala.objects.create(nome=nome, ip_rede=ip)
+        messages.success(request, "NETWORK_UNIT_ADDED: Sala registrada com sucesso.")
+        return redirect('gestao_salas')
+    
+    context = {
+        'salas': Sala.objects.all().order_by('nome'),
+    }
+    return render(request, 'academic/gestao_salas.html', context)
