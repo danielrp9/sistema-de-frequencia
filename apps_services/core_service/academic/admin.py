@@ -3,12 +3,12 @@ from simple_history.admin import SimpleHistoryAdmin
 from .models import Department, Course, Sala, Disciplina, Turma
 
 @admin.register(Department)
-class DepartmentAdmin(admin.ModelAdmin):
+class DepartmentAdmin(SimpleHistoryAdmin):
     list_display = ('code', 'name')
     search_fields = ('name', 'code')
 
 @admin.register(Course)
-class CourseAdmin(admin.ModelAdmin):
+class CourseAdmin(SimpleHistoryAdmin):
     list_display = ('name', 'department')
     list_filter = ('department',)
 
@@ -25,7 +25,7 @@ class DisciplinaAdmin(SimpleHistoryAdmin):
     search_fields = ('nome', 'codigo')
 
 @admin.register(Turma)
-class TurmaAdmin(admin.ModelAdmin):
+class TurmaAdmin(SimpleHistoryAdmin):
     # Novo Admin para gerenciar as turmas e matrículas manuais
     list_display = ('disciplina', 'professor', 'semestre', 'ativa')
     list_filter = ('semestre', 'ativa', 'professor')

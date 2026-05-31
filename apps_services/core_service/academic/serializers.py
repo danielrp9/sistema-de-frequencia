@@ -62,7 +62,11 @@ class AlunoRelatorioSerializer(serializers.ModelSerializer):
 
     def get_grade_presenca(self, obj):
         disciplina = self.context.get('disciplina')
-        aulas = Aula.objects.filter(turma__disciplina=disciplina).order_by('data')
+        turma = self.context.get('turma')
+        aulas = Aula.objects.filter(turma=turma).order_by('data')
+
+        if turma is None:
+            aulas = Aula.objects.filter(turma__disciplina=disciplina).order_by('data')
         
         grade = []
         for aula in aulas:

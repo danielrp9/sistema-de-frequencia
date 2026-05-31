@@ -1,8 +1,9 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 from .models import Aula
 
 @admin.register(Aula)
-class AulaAdmin(admin.ModelAdmin):
+class AulaAdmin(SimpleHistoryAdmin):
     list_display = ('get_disciplina_nome', 'data', 'horario_inicio', 'peso_aula', 'encerrada_manualmente')
     list_filter = ('data', 'turma__disciplina', 'encerrada_manualmente')
     

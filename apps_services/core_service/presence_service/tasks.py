@@ -1,27 +1,61 @@
+import logging
+
 from celery import shared_task
-from .models import Presenca
+from django.db import IntegrityError, transaction
+
 from classes.models import Aula
 from users.models import Aluno
-import logging
+from .models import Presenca
 
 logger = logging.getLogger(__name__)
 
-@shared_task
-def processar_presenca_task(aluno_id, aula_id, ip, lat, lon):
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={'max_retries': 3},
+)
+def processar_presenca_task(self, aluno_id, aula_id, ip, lat, lon):
+    aluno = Aluno.objects.get(id=aluno_id)
+    aula = Aula.objects.get(id=aula_id)
+
     try:
-        aluno = Aluno.objects.get(id=aluno_id)
-        aula = Aula.objects.get(id=aula_id)
-        
-        # Garantimos que a presença seja criada com o status que o serializer do relatório busca
-        Presenca.objects.create(
-            aluno=aluno,
-            aula=aula,
-            ip_registrado=ip,
-            latitude=lat,
-            longitude=lon,
-            status='VALIDA' # Deve ser idêntico ao filtro do AlunoRelatorioSerializer
-        )
-        return f"Sucesso: {aluno.nome} registrado na aula {aula.id}"
-    except Exception as e:
-        logger.error(f"Erro no Celery: {str(e)}")
-        return f"Falha: {str(e)}"
+        with transaction.atomic():
+            presenca, created = Presenca.objects.get_or_create(
+                aluno=aluno,
+                aula=aula,
+                defaults={
+                    'ip_registrado': ip,
+                    'latitude': float(lat),
+                    'longitude': float(lon),
+                    'status': 'VALIDA',
+                },
+            )
+    except (IntegrityError, ValueError) as exc:
+        logger.warning("Presenca duplicada ou invalida no Celery: %s", exc)
+        return {
+            'sucesso': False,
+            'codigo': 'PRESENCA_DUPLICADA',
+            'mensagem': 'Presenca ja existente ou dados invalidos.',
+            'aula_id': aula_id,
+            'aluno_id': aluno_id,
+        }
+
+    if created:
+        logger.info("Presenca %s criada via fila Celery.", presenca.id)
+        return {
+            'sucesso': True,
+            'codigo': 'PRESENCA_PROCESSADA',
+            'presenca_id': presenca.id,
+            'aula_id': aula.id,
+            'aluno_id': aluno.id,
+        }
+
+    return {
+        'sucesso': True,
+        'codigo': 'PRESENCA_JA_EXISTENTE',
+        'presenca_id': presenca.id,
+        'aula_id': aula.id,
+        'aluno_id': aluno.id,
+    }

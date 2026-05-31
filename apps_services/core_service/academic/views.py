@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 from .models import Department, Course, Disciplina, Turma, Sala
 from users.models import Professor, Aluno, User 
 from classes.models import Aula 
@@ -121,9 +122,19 @@ def gestao_salas(request):
     
     if request.method == "POST":
         nome = request.POST.get('nome')
-        ip = request.POST.get('ip_rede')
-        Sala.objects.create(nome=nome, ip_rede=ip)
-        messages.success(request, "NETWORK_UNIT_ADDED: Sala registrada com sucesso.")
+        predio = request.POST.get('predio')
+        latitude = request.POST.get('latitude')
+        longitude = request.POST.get('longitude')
+        raio_permitido = request.POST.get('raio_permitido') or 50
+
+        Sala.objects.create(
+            nome=nome,
+            predio=predio,
+            latitude=latitude,
+            longitude=longitude,
+            raio_permitido=raio_permitido,
+        )
+        messages.success(request, "GEOFENCE_ADDED: Sala registrada com sucesso.")
         return redirect('gestao_salas')
     
     context = {

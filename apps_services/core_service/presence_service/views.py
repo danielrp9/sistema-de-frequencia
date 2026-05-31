@@ -1,87 +1,159 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.utils import timezone
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from classes.models import Aula
-from .models import Presenca
+from django.core.cache import cache
+from django.http import HttpResponse
+from django.shortcuts import render
 
-def get_client_ip(request):
-    """Captura o endereço IP real do usuário."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from .serializers import PresencaSerializer
+from .tasks import processar_presenca_task
+
+
+def _get_presenca_lock_key(aluno, aula):
+    return f"presenca_lock:{aluno.id}:{aula.id}"
+
+
+def _acquire_presenca_lock(aluno, aula):
+    timeout = getattr(settings, 'PRESENCA_DUPLICATE_LOCK_TIMEOUT', 60)
+    return cache.add(_get_presenca_lock_key(aluno, aula), True, timeout)
+
+
+def _release_presenca_lock(aluno, aula):
+    cache.delete(_get_presenca_lock_key(aluno, aula))
+
+
+def _format_serializer_error(errors):
+    if not errors:
+        return "Erro desconhecido."
+
+    if isinstance(errors, dict):
+        for value in errors.values():
+            if isinstance(value, list):
+                return str(value[0])
+            if isinstance(value, dict):
+                return _format_serializer_error(value)
+            return str(value)
+
+    if isinstance(errors, list):
+        return str(errors[0])
+
+    return str(errors)
+
+
+def _api_error_response(message, http_status, code='VALIDATION_ERROR', errors=None):
+    payload = {
+        'sucesso': False,
+        'codigo': code,
+        'mensagem': message,
+    }
+    if errors is not None:
+        payload['erros'] = errors
+    return Response(payload, status=http_status)
+
+
+def _api_success_response(aula, task_id=None, http_status=status.HTTP_202_ACCEPTED):
+    return Response({
+        'sucesso': True,
+        'codigo': 'PRESENCA_ENFILEIRADA',
+        'mensagem': 'Presenca validada e enviada para processamento.',
+        'dados': {
+            'aula_id': aula.id,
+            'disciplina': aula.turma.disciplina.nome,
+            'turma_id': aula.turma.id,
+            'sala': aula.sala.nome,
+            'task_id': task_id,
+        },
+    }, status=http_status)
+
+
+def _enfileirar_processamento(aluno, aula, user_ip, lat_aluno, lon_aluno):
+    return processar_presenca_task.apply_async(
+        args=[aluno.id, aula.id, user_ip, lat_aluno, lon_aluno],
+        countdown=0,
+    )
+
 
 @login_required
 def registrar_presenca(request):
-    if request.method == "POST":
-        aula_id = request.POST.get('aula_id')
-        token = request.POST.get('token')
-        lat_aluno = request.POST.get('latitude')
-        lon_aluno = request.POST.get('longitude')
+    if request.method != "POST":
+        return HttpResponse("Acesso negado.", status=405)
 
-        try:
-            aula = Aula.objects.get(id=aula_id)
-            
-            if not hasattr(request.user, 'perfil_aluno'):
-                return render(request, 'classes/resultado.html', {
-                    'sucesso': False,
-                    'erro': 'Apenas contas de alunos podem registrar presença.'
-                })
-                
-            aluno = request.user.perfil_aluno
+    serializer = PresencaSerializer(data=request.POST, context={'request': request})
+    if not serializer.is_valid():
+        erro = _format_serializer_error(serializer.errors)
+        aula = serializer.context.get('aula')
+        return render(request, "classes/resultado.html", {
+            "sucesso": False,
+            "erro": erro,
+            "aula": aula,
+        })
 
-            # 1. Validação de Segurança (Token UUID)
-            if str(aula.token_qr) != token:
-                return render(request, 'classes/resultado.html', {
-                    'sucesso': False,
-                    'erro': 'QR Code inválido ou expirado.'
-                })
+    aula = serializer.context['aula']
+    aluno = serializer.context['aluno']
+    user_ip = serializer.context['user_ip']
+    lat_aluno = serializer.validated_data['latitude']
+    lon_aluno = serializer.validated_data['longitude']
 
-            # 2. Validação de Aula Ativa
-            if not aula.is_ativa():
-                return render(request, 'classes/resultado.html', {
-                    'sucesso': False,
-                    'erro': 'O tempo desta chamada já expirou.'
-                })
+    if not _acquire_presenca_lock(aluno, aula):
+        return render(request, "classes/resultado.html", {
+            "sucesso": False,
+            "erro": "Registro ja enviado. Aguarde alguns instantes antes de tentar novamente.",
+            "aula": aula,
+        })
 
-            # 3. Registro ou Atualização da Presença
-            user_ip = get_client_ip(request)
+    try:
+        _enfileirar_processamento(aluno, aula, user_ip, lat_aluno, lon_aluno)
+    except Exception:
+        _release_presenca_lock(aluno, aula)
+        return render(request, "classes/resultado.html", {
+            "sucesso": False,
+            "erro": "Fila indisponivel. Tente novamente em instantes.",
+            "aula": aula,
+        })
 
-            presenca, created = Presenca.objects.get_or_create(
-                aluno=aluno,
-                aula=aula,
-                defaults={
-                    'latitude': float(lat_aluno) if lat_aluno else None,
-                    'longitude': float(lon_aluno) if lon_aluno else None,
-                    'ip_registrado': user_ip
-                }
-            )
+    return render(request, "classes/resultado.html", {
+        "sucesso": True,
+        "aula": aula,
+    })
 
-            if not created:
-                return render(request, 'classes/resultado.html', {
-                    'sucesso': False,
-                    'erro': f'Você já registrou presença na aula de {aula.turma.disciplina.nome} hoje.',
-                    'aula': aula
-                })
 
-            return render(request, 'classes/resultado.html', {
-                'sucesso': True,
-                'aula': aula
-            })
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def registrar_presenca_api(request):
+    serializer = PresencaSerializer(data=request.data, context={'request': request})
 
-        except Aula.DoesNotExist:
-            return render(request, 'classes/resultado.html', {
-                'sucesso': False,
-                'erro': 'Aula não encontrada no sistema.'
-            })
-        except Exception as e:
-            # Esse bloco capturou o erro do banco
-            return render(request, 'classes/resultado.html', {
-                'sucesso': False,
-                'erro': f'Erro interno: {str(e)}'
-            })
+    if not serializer.is_valid():
+        return _api_error_response(
+            _format_serializer_error(serializer.errors),
+            status.HTTP_400_BAD_REQUEST,
+            errors=serializer.errors,
+        )
 
-    return HttpResponse("Acesso negado.", status=405)
+    aula = serializer.context['aula']
+    aluno = serializer.context['aluno']
+    user_ip = serializer.context['user_ip']
+    lat_aluno = serializer.validated_data['latitude']
+    lon_aluno = serializer.validated_data['longitude']
+
+    if not _acquire_presenca_lock(aluno, aula):
+        return _api_error_response(
+            "Registro ja enviado. Aguarde alguns instantes antes de tentar novamente.",
+            status.HTTP_409_CONFLICT,
+            code='PRESENCA_EM_PROCESSAMENTO',
+        )
+
+    try:
+        task_result = _enfileirar_processamento(aluno, aula, user_ip, lat_aluno, lon_aluno)
+    except Exception:
+        _release_presenca_lock(aluno, aula)
+        return _api_error_response(
+            "Fila de processamento indisponivel. Tente novamente em instantes.",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            code='FILA_INDISPONIVEL',
+        )
+
+    return _api_success_response(aula, task_id=task_result.id)

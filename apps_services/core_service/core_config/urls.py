@@ -1,11 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from users.views import AccountLoginView
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/dashboard/', permanent=True)),
     
     path('admin/', admin.site.urls),
+    path('accounts/login/', AccountLoginView.as_view(), name='account_login'),
     path('accounts/', include('allauth.urls')),
     
     # APP URLS (Sem duplicatas)

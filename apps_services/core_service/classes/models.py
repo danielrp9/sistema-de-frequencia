@@ -3,6 +3,7 @@ from django.db import models
 from academic.models import Turma, Sala
 from django.utils import timezone
 from datetime import timedelta
+from simple_history.models import HistoricalRecords
 
 class Aula(models.Model):
     turma = models.ForeignKey(Turma, on_delete=models.CASCADE, related_name='aulas')
@@ -19,6 +20,7 @@ class Aula(models.Model):
     
     # GARANTIA: O default deve ser False. 
     encerrada_manualmente = models.BooleanField(default=False)
+    history = HistoricalRecords()
 
     def is_ativa(self):
         """

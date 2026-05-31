@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from simple_history.models import HistoricalRecords
 
 class User(AbstractUser):
     """
@@ -10,6 +11,7 @@ class User(AbstractUser):
     """ 
     is_professor = models.BooleanField(default=False)
     is_aluno = models.BooleanField(default=False)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Usuário'
@@ -21,6 +23,7 @@ class Aluno(models.Model):
     matricula = models.CharField(max_length=20, unique=True)
     email = models.EmailField(unique=True)
     curso = models.CharField(max_length=100)
+    history = HistoricalRecords()
 
     def __str__(self):
         # Retorna Matrícula e Nome para facilitar a busca no filter_horizontal do Admin
@@ -31,6 +34,7 @@ class Professor(models.Model):
     nome = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     departamento = models.CharField(max_length=100)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.nome

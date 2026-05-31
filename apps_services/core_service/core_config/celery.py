@@ -1,7 +1,7 @@
 import os
 from celery import Celery
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core_config.settings.py')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core_config.settings')
 
 app = Celery('sistema_frequencia')
 # Usando RabbitMQ como Broker

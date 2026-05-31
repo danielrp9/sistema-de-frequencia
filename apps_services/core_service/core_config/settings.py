@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -14,6 +15,17 @@ ALLOWED_HOSTS = ['*']
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
+
+# Permite login via IP local em desenvolvimento
+CSRF_TRUSTED_ORIGINS = [
+    'http://192.168.3.30:8000',
+]
+ngrok_url = os.getenv('NGROK_URL')
+if ngrok_url:
+    CSRF_TRUSTED_ORIGINS.append(ngrok_url)
+
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -46,9 +58,9 @@ AUTHENTICATION_BACKENDS = [
 AUTH_USER_MODEL = 'users.User' 
 
 # CONFIGURAÇÃO ALLAUTH ATUALIZADA (Django 6+)
-ACCOUNT_LOGIN_METHODS = {'email', 'username'}
-# Removido ACCOUNT_EMAIL_REQUIRED conforme o Warning recomendou
-ACCOUNT_EMAIL_VERIFICATION = 'none' 
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 LOGIN_REDIRECT_URL = '/dashboard/' 
@@ -109,18 +121,43 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+IS_TESTING = 'test' in sys.argv
+USE_REDIS_CACHE = os.getenv(
+    'DJANGO_USE_REDIS_CACHE',
+    'False' if IS_TESTING else 'True',
+).lower() in ('1', 'true', 'yes')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1')
+
+if USE_REDIS_CACHE:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SOCKET_CONNECT_TIMEOUT": 2,
+                "SOCKET_TIMEOUT": 2,
+            },
+            "KEY_PREFIX": "frequencia",
         }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
 
-CELERY_BROKER_URL = 'pyamqp://guest@localhost//'
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'pyamqp://guest@localhost//')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_BROKER_CONNECTION_TIMEOUT = int(os.getenv('CELERY_BROKER_CONNECTION_TIMEOUT', '2'))
+CELERY_TASK_ALWAYS_EAGER = IS_TESTING
+CELERY_TASK_EAGER_PROPAGATES = IS_TESTING
 
-UNIVERSIDADE_IP_RANGES = ['127.0.0.1', '192.168.0.0/16', '200.131.0.0/16', '10.0.0.0/8']
+PRESENCA_DUPLICATE_LOCK_TIMEOUT = int(os.getenv('PRESENCA_DUPLICATE_LOCK_TIMEOUT', '60'))
+
+#UNIVERSIDADE_IP_RANGES = ['10.10.10.0/24',]
+
+UNIVERSIDADE_IP_RANGES = ['127.0.0.1', '192.168.0.0/16', '200.131.0.0/16', '10.0.0.0/8','177.74.239.104']

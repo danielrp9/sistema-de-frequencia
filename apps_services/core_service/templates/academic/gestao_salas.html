@@ -12,7 +12,7 @@
         <div class="lg:col-span-1">
             <form method="post" class="bg-slate-900/40 p-6 rounded-3xl border border-white/5 space-y-6">
                 {% csrf_token %}
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-white/5 pb-4">Nova Unidade</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-white/5 pb-4">Nova Sala</h3>
                 
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome da Sala</label>
@@ -21,8 +21,26 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">IP de Rede (Opcional)</label>
-                    <input type="text" name="ip_rede" placeholder="Ex: 200.131.X.X"
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Predio</label>
+                    <input type="text" name="predio" placeholder="Ex: Predio de Aulas 1" required
+                           class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500/50 outline-none transition-all mono">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Latitude</label>
+                    <input type="number" step="0.000001" name="latitude" placeholder="Ex: -18.241234" required
+                           class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500/50 outline-none transition-all mono">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Longitude</label>
+                    <input type="number" step="0.000001" name="longitude" placeholder="Ex: -43.601234" required
+                           class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500/50 outline-none transition-all mono">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Raio Permitido (m)</label>
+                    <input type="number" step="0.1" min="1" name="raio_permitido" value="50" required
                            class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500/50 outline-none transition-all mono">
                 </div>
 
@@ -39,7 +57,7 @@
                     <thead>
                         <tr class="bg-white/5">
                             <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identificação</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Protocolo IP</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Geofence</th>
                             <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
                         </tr>
                     </thead>
@@ -48,9 +66,10 @@
                         <tr class="hover:bg-white/[0.02] transition-colors group">
                             <td class="px-6 py-4">
                                 <span class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">{{ sala.nome }}</span>
+                                <span class="block text-[10px] mono text-slate-600 mt-1 uppercase">{{ sala.predio }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-xs mono text-slate-500 italic">{{ sala.ip_rede|default:"DYNAMICAL_IP" }}</span>
+                                <span class="text-xs mono text-slate-500 italic">{{ sala.latitude }}, {{ sala.longitude }} // {{ sala.raio_permitido }}m</span>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <button class="text-slate-600 hover:text-red-400 transition-colors">
@@ -60,7 +79,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" class="px-6 py-10 text-center text-xs mono text-slate-600 uppercase tracking-widest">Nenhuma unidade de rede mapeada.</td>
+                            <td colspan="3" class="px-6 py-10 text-center text-xs mono text-slate-600 uppercase tracking-widest">Nenhuma sala mapeada.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

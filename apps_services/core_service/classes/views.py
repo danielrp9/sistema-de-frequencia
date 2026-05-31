@@ -3,6 +3,7 @@ import uuid
 from io import BytesIO
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -88,7 +89,8 @@ def visualizar_qr_code(request, aula_id):
     protocol = 'https' if request.is_secure() else 'http'
     url_base = f"{protocol}://{host}"
     
-    dados_qr = f"{url_base}/presenca/registrar/?id={aula.id}&token={aula.token_qr}"
+    registrar_url = reverse('registrar_presenca')
+    dados_qr = f"{url_base}{registrar_url}?id={aula.id}&token={aula.token_qr}"
     
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(dados_qr)
@@ -122,7 +124,11 @@ def relatorio_presenca_disciplina(request, turma_id):
     aulas = Aula.objects.filter(turma=turma).order_by('data')
     colunas_datas = AulaGradeSerializer(aulas, many=True).data
     alunos = turma.alunos.all().order_by('nome')
-    serializer = AlunoRelatorioSerializer(alunos, many=True, context={'disciplina': turma.disciplina})
+    serializer = AlunoRelatorioSerializer(
+        alunos,
+        many=True,
+        context={'disciplina': turma.disciplina, 'turma': turma},
+    )
     
     return render(request, 'classes/relatorio_disciplina.html', {
         'disciplina': turma.disciplina, # Corrigido para bater com o template

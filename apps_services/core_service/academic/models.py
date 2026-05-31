@@ -16,6 +16,7 @@ class Sala(models.Model):
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
     code = models.CharField(max_length=10, unique=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -23,6 +24,7 @@ class Department(models.Model):
 class Course(models.Model):
     name = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='courses')
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.name} ({self.department.code})"
@@ -45,6 +47,7 @@ class Turma(models.Model):
     alunos = models.ManyToManyField(Aluno, related_name='turmas_matriculadas', blank=True)
     semestre = models.CharField(max_length=10)
     ativa = models.BooleanField(default=True)
+    history = HistoricalRecords(m2m_fields=[alunos])
 
     def __str__(self):
         return f"{self.disciplina.nome} - {self.professor.nome} ({self.semestre})"
