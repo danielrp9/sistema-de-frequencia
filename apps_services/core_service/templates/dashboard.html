@@ -104,7 +104,7 @@
             <nav class="flex gap-3" aria-label="Ações rápidas">
                 {% if is_aluno %}
                     <a href="{% url 'registrar_presenca_camera' %}" class="btn-primary-modern px-8 py-3 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-900/20">
-                        Scanner de Presença
+                        Abrir Scanner de Presença
                     </a>
                 {% elif is_professor and not user.is_superuser %}
                     <a href="{% url 'abrir_turma' %}" class="px-6 py-3 bg-white/5 border border-white/10 text-white hover:bg-white/10 rounded-xl transition-all font-bold text-xs uppercase tracking-widest">
@@ -118,76 +118,61 @@
         </header>
 
         {% if user.is_superuser %}
-            <!-- VISÃO DO ADMINISTRADOR (Centro de Comando) -->
+            <!-- VISÃO DO ADMINISTRADOR (Gestão Base) -->
             <section class="space-y-10">
                 <div class="flex items-center justify-between mb-2">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] px-2">Gestão de Infraestrutura</h2>
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] px-2 italic">Controle Institucional</h2>
                     <span class="h-[1px] flex-1 bg-white/5 mx-4" aria-hidden="true"></span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Departamentos -->
-                    <a href="{% url 'gestao_departamentos' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Estrutura</p>
-                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Departamentos</h3>
-                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">Gerenciamento Estrutural</p>
+                    <a href="{% url 'gestao_departamentos' %}" class="admin-stat-card p-6 rounded-3xl hover:border-indigo-500/50 transition-all group border border-white/5 shadow-xl">
+                        <p class="text-[9px] font-bold text-indigo-500 uppercase mb-4 tracking-[0.2em]">Estrutura</p>
+                        <h3 class="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase italic">Departamentos</h3>
+                        <p class="text-[10px] text-slate-500 mt-2 font-medium">Gerenciar Centros e Cursos</p>
                     </a>
 
                     <!-- Usuários -->
-                    <a href="{% url 'gestao_usuarios' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Identidades</p>
-                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Usuários</h3>
-                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">Gerenciamento de Usuários</p>
+                    <a href="{% url 'gestao_usuarios' %}" class="admin-stat-card p-6 rounded-3xl hover:border-indigo-500/50 transition-all group border border-white/5 shadow-xl">
+                        <p class="text-[9px] font-bold text-indigo-500 uppercase mb-4 tracking-[0.2em]">Pessoas</p>
+                        <h3 class="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase italic">Usuários</h3>
+                        <p class="text-[10px] text-slate-500 mt-2 font-medium">Docentes e Estudantes</p>
                     </a>
 
-                    <!-- Salas e Geofencing (Configuração de Rede) -->
-                    <a href="{% url 'gestao_salas' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Rede Acadêmica</p>
-                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Salas & IPs</h3>
-                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">Gerenciamento de Geolocalização</p>
+                    <!-- Salas -->
+                    <a href="{% url 'gestao_salas' %}" class="admin-stat-card p-6 rounded-3xl hover:border-indigo-500/50 transition-all group border border-white/5 shadow-xl">
+                        <p class="text-[9px] font-bold text-indigo-500 uppercase mb-4 tracking-[0.2em]">Espaço Físico</p>
+                        <h3 class="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase italic">Salas & Locais</h3>
+                        <p class="text-[10px] text-slate-500 mt-2 font-medium">Geolocalização das Aulas</p>
                     </a>
 
-                    <!-- Auditoria (Django Admin) -->
-                    <a href="{% url 'admin:index' %}" class="admin-stat-card p-6 rounded-2xl hover:border-indigo-500/50 transition-all group border border-white/5 focus:ring-2 focus:ring-indigo-500">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Auditoria</p>
-                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Logs do Sistema</h3>
-                        <p class="text-[10px] mono text-slate-600 mt-2 italic uppercase">Monitoramento do Sistema</p>
+                    <!-- Auditoria -->
+                    <a href="{% url 'admin:index' %}" class="admin-stat-card p-6 rounded-3xl hover:border-indigo-500/50 transition-all group border border-white/5 shadow-xl">
+                        <p class="text-[9px] font-bold text-indigo-500 uppercase mb-4 tracking-[0.2em]">Segurança</p>
+                        <h3 class="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase italic">Logs de Ações</h3>
+                        <p class="text-[10px] text-slate-500 mt-2 font-medium">Histórico Geral do Sistema</p>
                     </a>
                 </div>
 
-                <!-- Monitor de Serviços -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="glass-card-modern p-6 border border-white/5 lg:col-span-2">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Presencas por Turma</h3>
-                        <div class="chart-panel">
-                            <canvas id="turmasChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="glass-card-modern p-6 border border-white/5">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Resumo Geral</h3>
-                        <div class="chart-panel">
-                            <canvas id="resumoChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card-modern p-8 border border-white/5">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Status dos Serviços Distribuídos</h3>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="space-y-1">
-                            <p class="text-[9px] font-bold text-slate-600 uppercase">{{ infra_status.cache.name }}</p>
-                            <p class="text-xs font-bold text-slate-300 mono">{{ infra_status.cache.status }} // {{ infra_status.cache.detail }}</p>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[9px] font-bold text-slate-600 uppercase">{{ infra_status.queue.name }}</p>
-                            <p class="text-xs font-bold text-slate-300 mono">{{ infra_status.queue.status }} // {{ infra_status.queue.detail }}</p>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[9px] font-bold text-slate-600 uppercase">{{ infra_status.database.name }}</p>
-                            <p class="text-xs font-bold text-slate-300 mono">{{ infra_status.database.status }} // {{ infra_status.database.detail }}</p>
+                <div class="grid grid-cols-1 gap-8">
+                    <!-- Últimas Turmas Ativas -->
+                    <div class="glass-card-modern p-8 border border-white/5 overflow-hidden">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-[0.2em] mb-6">Turmas em Atividade</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for turma in turmas_sistema %}
+                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                                <div>
+                                    <p class="text-xs font-bold text-white uppercase tracking-tight">{{ turma.disciplina.nome }}</p>
+                                    <p class="text-[9px] text-slate-500 uppercase font-bold mt-1">Prof. {{ turma.professor.nome }}</p>
+                                </div>
+                                <span class="px-2 py-1 bg-indigo-500/10 text-indigo-400 text-[8px] font-black rounded uppercase mono">{{ turma.semestre }}</span>
+                            </div>
+                            {% empty %}
+                            <div class="col-span-full py-10 text-center">
+                                <p class="text-[10px] text-slate-600 italic">Nenhuma turma ativa no momento</p>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -225,222 +210,61 @@
                 {% endif %}
             {% endfor %}
 
-            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10" aria-label="Graficos de frequencia">
-                <div class="glass-card-modern p-6 border border-white/5 lg:col-span-2">
-                    <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Presencas por Turma</h2>
-                    <div class="chart-panel">
-                        <canvas id="turmasChart"></canvas>
-                    </div>
-                </div>
-                <div class="glass-card-modern p-6 border border-white/5">
-                    <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Resumo das Chamadas</h2>
-                    <div class="chart-panel">
-                        <canvas id="resumoChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for turma in minhas_turmas %}
                 <div class="glass-card-modern p-6 hover:border-indigo-500/40 transition-all group relative border border-white/5">
                     <div class="flex justify-between items-start mb-6">
                         <span class="text-[9px] font-bold bg-slate-800 text-indigo-400 px-3 py-1 rounded-md uppercase mono">{{ turma.disciplina.codigo }}</span>
-                        <a href="{% url 'gerenciar_alunos_disciplina' turma.id %}" aria-label="Gerenciar alunos" class="text-slate-500 hover:text-white transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                        </a>
                     </div>
                     <h3 class="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors italic leading-tight">{{ turma.disciplina.nome }}</h3>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ turma.semestre }}</p>
                     <div class="mt-8">
-                        <a href="{% url 'relatorio_presenca_disciplina' turma.id %}" class="block text-center py-3 bg-slate-900 hover:bg-indigo-600/10 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-indigo-400 border border-white/5 transition-all">Relatório Completo</a>
+                        <a href="{% url 'gerenciar_alunos_disciplina' turma.id %}" class="block text-center py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white transition-all shadow-lg shadow-indigo-900/20">Gerenciar Disciplina</a>
                     </div>
                 </div>
                 {% endfor %}
             </div>
 
         {% elif is_aluno %}
-            <!-- VISÃO DO ESTUDANTE (Engajamento e Limite de 25%) -->
-            <div class="lg:col-span-12">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] px-2 italic">Engajamento e Limite de Faltas (25%)</h2>
-                    <span class="h-[1px] flex-1 bg-white/5 mx-4" aria-hidden="true"></span>
+            <!-- VISÃO DO ESTUDANTE (Mobile First) -->
+            <section class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest italic">Minhas Disciplinas</h2>
                 </div>
-
-                <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10" aria-label="Graficos de frequencia">
-                    <div class="glass-card-modern p-6 border border-white/5 lg:col-span-2">
-                        <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Frequencia por Disciplina</h2>
-                        <div class="chart-panel">
-                            <canvas id="frequenciaChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="glass-card-modern p-6 border border-white/5">
-                        <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Horas Registradas</h2>
-                        <div class="chart-panel">
-                            <canvas id="horasChart"></canvas>
-                        </div>
-                    </div>
-                </section>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {% for disciplina in disciplinas_aluno %}
-                    <div class="glass-card-modern p-6 border-l-2 border-l-indigo-500 bg-slate-900/20 flex flex-col justify-between min-h-[320px]">
-                        <div>
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="text-[10px] font-bold text-indigo-400 mono uppercase tracking-tighter">{{ disciplina.codigo }}</span>
-                                <span class="text-[10px] font-bold text-emerald-400 mono">{{ disciplina.porcentagem_frequencia }}% FREQ.</span>
+                    <a href="{% url 'detalhes_disciplina_aluno' disciplina.turma_id %}" 
+                       class="glass-card-modern p-5 md:p-6 border-l-4 border-l-indigo-500 hover:border-indigo-500/50 transition-all group">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] font-bold text-indigo-400 mono uppercase tracking-tighter">{{ disciplina.codigo }}</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="status-dot {% if disciplina.porcentagem_frequencia >= 75 %}bg-emerald-500{% else %}bg-amber-500{% endif %}"></span>
+                                <span class="text-[10px] font-bold text-slate-300">{{ disciplina.porcentagem_frequencia }}% Freq.</span>
                             </div>
-                            <h3 class="text-xl font-bold text-white mb-6 tracking-tight italic leading-tight">{{ disciplina.nome }}</h3>
                         </div>
+                        <h3 class="text-lg font-bold text-white mb-2 tracking-tight italic leading-tight group-hover:text-indigo-400 transition-colors">{{ disciplina.nome }}</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">Prof. {{ disciplina.professor_nome }}</p>
                         
-                        <div class="space-y-3 mb-6">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="bg-slate-950 p-3 rounded-xl border border-white/5">
-                                    <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">Presença</p>
-                                    <p class="text-lg font-black text-emerald-400 mono">{{ disciplina.horas_presenca }}<span class="text-xs ml-0.5">h</span></p>
-                                </div>
-                                <div class="bg-slate-950 p-3 rounded-xl border border-white/5">
-                                    <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">Faltas</p>
-                                    <p class="text-lg font-black text-amber-500 mono">{{ disciplina.horas_falta }}<span class="text-xs ml-0.5">h</span></p>
-                                </div>
-                            </div>
-
-                            <div class="bg-indigo-500/5 p-3 rounded-xl border border-indigo-500/10 flex justify-between items-center">
-                                <div>
-                                    <p class="text-[8px] font-bold text-indigo-400/80 uppercase">Limite de Faltas (25%)</p>
-                                    <p class="text-xs font-bold text-slate-300 mono">{{ disciplina.limite_faltas }}h permitidas</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[8px] font-bold text-slate-500 uppercase">Total Disciplina</p>
-                                    <p class="text-xs font-bold text-slate-400 mono">{{ disciplina.carga_horaria_total }}h</p>
-                                </div>
-                            </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-white/5">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">Ver detalhes</span>
+                            <svg class="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition-all group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </div>
-
-                        <div class="space-y-2">
-                            <div class="flex justify-between items-center text-[9px] font-bold uppercase mono">
-                                <span class="text-slate-500">Status de Aprovação</span>
-                                {% if disciplina.porcentagem_frequencia >= 75 %}
-                                    <span class="text-emerald-500" role="status">Regular</span>
-                                {% else %}
-                                    <span class="text-red-500 animate-pulse" role="status">Risco de Infrequência</span>
-                                {% endif %}
-                            </div>
-                            <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-white/5" role="progressbar" aria-valuenow="{{ disciplina.porcentagem_frequencia }}" aria-valuemin="0" aria-valuemax="100">
-                                <div class="{% if disciplina.porcentagem_frequencia >= 75 %}bg-indigo-500{% else %}bg-red-500{% endif %} h-full transition-all duration-1000" 
-                                     style="width: {{ disciplina.porcentagem_frequencia }}%"></div>
-                            </div>
-                        </div>
+                    </a>
+                {% empty %}
+                    <div class="col-span-full py-20 text-center bg-slate-900/20 rounded-3xl border border-dashed border-white/10">
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Nenhuma disciplina encontrada</p>
                     </div>
                 {% endfor %}
                 </div>
-            </div>
+            </section>
         {% endif %}
     </div>
     {{ chart_data|json_script:"dashboard-chart-data" }}
 {% endblock %}
 
 {% block extra_js %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const chartDataNode = document.getElementById('dashboard-chart-data');
-        const chartData = chartDataNode ? JSON.parse(chartDataNode.textContent) : null;
-        const chartTextColor = '#94a3b8';
-        const chartGridColor = 'rgba(148, 163, 184, 0.12)';
-
-        function baseChartOptions(extraOptions = {}) {
-            return {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: { color: chartTextColor, boxWidth: 10, font: { size: 10 } }
-                    }
-                },
-                scales: {
-                    x: { ticks: { color: chartTextColor }, grid: { color: chartGridColor } },
-                    y: { ticks: { color: chartTextColor, precision: 0 }, grid: { color: chartGridColor }, beginAtZero: true }
-                },
-                ...extraOptions
-            };
-        }
-
-        function renderDashboardCharts() {
-            if (!chartData || !window.Chart) return;
-
-            const turmasCanvas = document.getElementById('turmasChart');
-            if (turmasCanvas) {
-                new Chart(turmasCanvas, {
-                    type: 'bar',
-                    data: {
-                        labels: chartData.labels,
-                        datasets: [
-                            { label: 'Presencas', data: chartData.presencas, backgroundColor: '#10b981' },
-                            { label: 'Faltas', data: chartData.faltas, backgroundColor: '#f59e0b' }
-                        ]
-                    },
-                    options: baseChartOptions()
-                });
-            }
-
-            const resumoCanvas = document.getElementById('resumoChart');
-            if (resumoCanvas) {
-                new Chart(resumoCanvas, {
-                    type: 'doughnut',
-                    data: {
-                        labels: chartData.resumo.labels,
-                        datasets: [{
-                            data: chartData.resumo.values,
-                            backgroundColor: ['#10b981', '#f59e0b'],
-                            borderColor: '#0f172a'
-                        }]
-                    },
-                    options: baseChartOptions({ scales: {} })
-                });
-            }
-
-            const frequenciaCanvas = document.getElementById('frequenciaChart');
-            if (frequenciaCanvas) {
-                new Chart(frequenciaCanvas, {
-                    type: 'bar',
-                    data: {
-                        labels: chartData.labels,
-                        datasets: [{
-                            label: 'Frequencia (%)',
-                            data: chartData.frequencia,
-                            backgroundColor: '#6366f1'
-                        }]
-                    },
-                    options: baseChartOptions({
-                        scales: {
-                            x: { ticks: { color: chartTextColor }, grid: { color: chartGridColor } },
-                            y: { min: 0, max: 100, ticks: { color: chartTextColor }, grid: { color: chartGridColor } }
-                        }
-                    })
-                });
-            }
-
-            const horasCanvas = document.getElementById('horasChart');
-            if (horasCanvas) {
-                new Chart(horasCanvas, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Presencas', 'Faltas'],
-                        datasets: [{
-                            data: [
-                                chartData.presencas.reduce((total, value) => total + value, 0),
-                                chartData.faltas.reduce((total, value) => total + value, 0)
-                            ],
-                            backgroundColor: ['#10b981', '#f59e0b'],
-                            borderColor: '#0f172a'
-                        }]
-                    },
-                    options: baseChartOptions({ scales: {} })
-                });
-            }
-        }
-
-        renderDashboardCharts();
-
         let qrInterval;
         
         function handleOpenModal(button) {

@@ -28,15 +28,17 @@ def registrar_aula(request):
     if request.method == "POST":
         turma_id = request.POST.get('turma')
         sala_id = request.POST.get('sala')
-        peso_str = request.POST.get('peso_aula', '2')
+        peso_str = request.POST.get('peso_aula')
         
         # VALIDAÇÃO DE SEGURANÇA: Impede o IntegrityError do professor
-        if not turma_id or not sala_id:
-            messages.error(request, "ERRO_INTEGRITY: Turma ou Sala não selecionada.")
+        if not turma_id or not sala_id or not peso_str:
+            messages.error(request, "ERRO_INTEGRITY: Turma, Sala ou Carga Horária não selecionada.")
             return redirect('registrar_aula')
 
         try:
             peso = int(peso_str)
+            if peso <= 0:
+                raise ValueError("Carga horária deve ser maior que zero.")
             agora = timezone.localtime()
             
             # Criação do objeto com verificação de existência dos IDs

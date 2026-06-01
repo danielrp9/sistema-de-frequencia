@@ -21,10 +21,10 @@ class DisciplinaResumoSerializer(serializers.ModelSerializer):
     def get_horas_presenca(self, obj):
         aluno = self.context.get('aluno')
         if not aluno: return 0
-        # CORREÇÃO: Removido filtro status='VALIDA'
         return Presenca.objects.filter(
             aluno=aluno, 
-            aula__turma__disciplina=obj
+            aula__turma__disciplina=obj,
+            status='VALIDA'
         ).aggregate(total=Sum('aula__peso_aula'))['total'] or 0
 
     def get_horas_falta(self, obj):
@@ -55,26 +55,40 @@ class DisciplinaResumoSerializer(serializers.ModelSerializer):
 class AlunoRelatorioSerializer(serializers.ModelSerializer):
     """Retorna os dados do aluno para a grade de presença do professor."""
     grade_presenca = serializers.SerializerMethodField()
+    total_faltas = serializers.SerializerMethodField()
 
     class Meta:
         model = Aluno
-        fields = ['id', 'nome', 'matricula', 'grade_presenca']
+        fields = ['id', 'nome', 'matricula', 'grade_presenca', 'total_faltas']
 
     def get_grade_presenca(self, obj):
-        disciplina = self.context.get('disciplina')
         turma = self.context.get('turma')
-        aulas = Aula.objects.filter(turma=turma).order_by('data')
-
-        if turma is None:
-            aulas = Aula.objects.filter(turma__disciplina=disciplina).order_by('data')
+        aulas = Aula.objects.filter(turma=turma).order_by('data', 'horario_inicio')
         
         grade = []
         for aula in aulas:
-            # CORREÇÃO: Removido filtro status='VALIDA'
-            presente = Presenca.objects.filter(aluno=obj, aula=aula).exists()
+            presente = Presenca.objects.filter(aluno=obj, aula=aula, status='VALIDA').exists()
             grade.append({
                 'data': aula.data.strftime('%d/%m'),
                 'presente': presente,
                 'peso': aula.peso_aula
             })
         return grade
+
+    def get_total_faltas(self, obj):
+        turma = self.context.get('turma')
+        # Pega todas as aulas da turma
+        aulas = Aula.objects.filter(turma=turma)
+        # IDs das aulas onde o aluno esteve presente
+        aulas_presente_ids = Presenca.objects.filter(
+            aluno=obj, 
+            aula__turma=turma, 
+            status='VALIDA'
+        ).values_list('aula_id', flat=True)
+        
+        # Soma o peso das aulas onde o aluno NÃO esteve presente
+        total_horas_falta = aulas.exclude(id__in=aulas_presente_ids).aggregate(
+            total=Sum('peso_aula')
+        )['total'] or 0
+        
+        return total_horas_falta

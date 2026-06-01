@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django_redis import get_redis_connection
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils.decorators import method_decorator
@@ -85,7 +85,7 @@ def build_turmas_chart_data(turmas):
         aulas_count = Aula.objects.filter(turma=turma).count()
         alunos_count = turma.alunos.count()
         total_previsto = aulas_count * alunos_count
-        total_presencas = Presenca.objects.filter(aula__turma=turma).count()
+        total_presencas = Presenca.objects.filter(aula__turma=turma, status='VALIDA').count()
 
         labels.append(f"{turma.disciplina.codigo} {turma.semestre}")
         presencas.append(total_presencas)
@@ -128,11 +128,9 @@ def dashboard(request):
 
     if is_admin:
         context['departamentos'] = Department.objects.all()
-        minhas_turmas = Turma.objects.filter(ativa=True).select_related('disciplina')
-        context['minhas_turmas'] = minhas_turmas
-        context['aulas_recentes'] = Aula.objects.all().order_by('-data', '-horario_inicio')[:10]
+        # Lista todas as turmas ativas para supervisão básica
+        context['turmas_sistema'] = Turma.objects.filter(ativa=True).select_related('disciplina', 'professor')[:10]
         context['infra_status'] = get_infra_status()
-        context['chart_data'] = build_turmas_chart_data(list(minhas_turmas))
     
     elif is_professor:
         minhas_turmas = Turma.objects.filter(professor__user=user, ativa=True).select_related('disciplina')
@@ -142,17 +140,60 @@ def dashboard(request):
 
     if is_aluno:
         try:
-            turmas = Turma.objects.filter(alunos__user=user, ativa=True)
+            turmas = Turma.objects.filter(alunos__user=user, ativa=True).select_related('disciplina', 'professor')
             disciplinas = [t.disciplina for t in turmas]
-            # Cálculo de limite de faltas para o serializer/contexto
+            # No dashboard inicial, apenas listamos as turmas para não sobrecarregar
             serializer = DisciplinaResumoSerializer(disciplinas, many=True, context={'aluno': user.perfil_aluno})
-            context['disciplinas_aluno'] = serializer.data
-            context['chart_data'] = build_aluno_chart_data(serializer.data)
+            
+            # Mapeamos os dados serializados de volta para as turmas para ter acesso ao ID da Turma no template
+            turmas_data = []
+            for i, t in enumerate(turmas):
+                item = serializer.data[i]
+                item['turma_id'] = t.id
+                item['professor_nome'] = t.professor.nome
+                turmas_data.append(item)
+                
+            context['disciplinas_aluno'] = turmas_data
         except Exception:
             context['disciplinas_aluno'] = []
-            context['chart_data'] = build_aluno_chart_data([])
 
     return render(request, 'dashboard.html', context)
+
+@login_required
+def detalhes_disciplina_aluno(request, turma_id):
+    """Visão detalhada de uma disciplina para o aluno."""
+    if not getattr(request.user, 'is_aluno', False):
+        return redirect('dashboard')
+        
+    turma = get_object_or_404(Turma, id=turma_id, alunos__user=request.user)
+    aluno = request.user.perfil_aluno
+    
+    # Histórico de Presenças
+    aulas = Aula.objects.filter(turma=turma).order_by('data', 'horario_inicio')
+    presencas_aluno = Presenca.objects.filter(aluno=aluno, aula__turma=turma, status='VALIDA').values_list('aula_id', flat=True)
+    
+    historico = []
+    for aula in aulas:
+        historico.append({
+            'data': aula.data,
+            'presente': aula.id in presencas_aluno,
+            'peso': aula.peso_aula
+        })
+        
+    # Estatísticas
+    serializer = DisciplinaResumoSerializer(turma.disciplina, context={'aluno': aluno})
+    
+    context = {
+        'turma': turma,
+        'disciplina': turma.disciplina,
+        'historico': historico,
+        'stats': serializer.data,
+        'chart_data': {
+            'labels': ['Presenças', 'Faltas'],
+            'values': [serializer.data['horas_presenca'], serializer.data['horas_falta']]
+        }
+    }
+    return render(request, 'users/detalhes_disciplina_aluno.html', context)
 
 # --- GESTÃO DE USUÁRIOS (ADMIN ONLY) ---
 def admin_only(user):

@@ -6,4 +6,5 @@ urlpatterns = [
     
     path('gestao/usuarios/', views.gestao_usuarios, name='gestao_usuarios'),
     path('gestao/usuarios/novo/', views.criar_usuario_manual, name='criar_usuario_manual'),
+    path('disciplina/<int:turma_id>/', views.detalhes_disciplina_aluno, name='detalhes_disciplina_aluno'),
 ]

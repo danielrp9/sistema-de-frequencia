@@ -77,10 +77,24 @@
     }
 
     function exibirSucesso(data) {
-        const disciplina = data.dados?.disciplina || data.mensagem || 'PRESENCA_REGISTRADA';
-        atualizarStatus(disciplina, 'text-emerald-500');
+        const disciplina = data.dados?.disciplina || 'PRESENÇA';
+        
+        // Esconde o leitor e mostra sucesso grande
+        document.getElementById('reader').style.display = 'none';
+        const scannerContainer = document.querySelector('.relative.rounded-2xl');
+        scannerContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-12 bg-emerald-500/10 h-72">
+                <div class="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/30 animate-bounce">
+                    <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <h2 class="text-xl font-black text-white uppercase tracking-tighter italic">PRESENÇA REGISTRADA</h2>
+                <p class="text-[10px] text-emerald-400 font-bold uppercase mono mt-2">${disciplina}</p>
+            </div>
+        `;
+
+        atualizarStatus("SYNC_SUCCESS: REDIRECTING...", 'text-emerald-500');
         errorLog.classList.add('hidden');
-        setTimeout(() => { location.href = dashboardUrl; }, 1800);
+        setTimeout(() => { location.href = dashboardUrl; }, 2500);
     }
 
     function reiniciarScanner() {

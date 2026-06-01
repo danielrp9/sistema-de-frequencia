@@ -24,7 +24,7 @@
         }
         .mono { font-family: 'JetBrains Mono', monospace; }
         .glass-sidebar {
-            background: rgba(7, 10, 22, 0.8);
+            background: rgba(7, 10, 22, 0.95);
             backdrop-filter: blur(12px);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
@@ -44,14 +44,35 @@
             border-radius: 50%;
             display: inline-block;
         }
+        /* Mobile Overlay */
+        #sidebar-overlay.active {
+            display: block;
+        }
         {% block extra_style %}{% endblock %}
     </style>
 </head>
-<body class="flex">
+<body class="flex flex-col md:flex-row">
+
+    <!-- Mobile Header -->
+    <div class="md:hidden glass-sidebar p-4 flex justify-between items-center border-b border-white/5 sticky top-0 z-[60]">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white text-xs">S</div>
+            <span class="text-sm font-bold text-white uppercase tracking-tighter">SisPre</span>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <button id="mobileMenuBtn" class="text-slate-400 p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[80] hidden md:hidden"></div>
 
     <!-- Sidebar -->
-    <aside class="glass-sidebar w-64 h-screen sticky top-0 hidden md:flex flex-col z-50">
-        <div class="p-6 mb-4">
+    <aside id="sidebar" class="glass-sidebar w-64 h-screen fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:sticky md:flex flex-col transition-transform duration-300 ease-in-out z-[100] md:z-50">
+        <div class="p-6 mb-4 hidden md:block">
             <div class="flex items-center gap-2 mb-1">
                 <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white">S</div>
                 <h1 class="text-xl font-bold text-white tracking-tight">SISPRES</h1>
@@ -59,46 +80,56 @@
             <p class="text-[10px] font-bold text-indigo-500/80 uppercase tracking-widest pl-1">Sistema de Presença</p>
         </div>
 
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="{% url 'dashboard' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold {% if request.resolver_match.url_name == 'dashboard' %}active text-indigo-400{% endif %}">
+        <nav class="flex-1 px-4 space-y-1 mt-10 md:mt-0">
+            {% if user.is_superuser %}
+            <div class="pt-6 pb-2 px-4 uppercase text-[10px] font-black text-slate-600 tracking-[0.2em]">Administração</div>
+            
+            <a href="{% url 'dashboard' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold {% if request.resolver_match.url_name == 'dashboard' %}active text-indigo-400 bg-indigo-500/10{% endif %}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                Início
+                Resumo
             </a>
 
-            {% if user.is_superuser %}
-            <div class="pt-6 pb-2 px-4 uppercase text-[10px] font-black text-slate-600 tracking-[0.2em]">Infraestrutura</div>
-            <a href="{% url 'gestao_departamentos' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold">
+            <a href="{% url 'gestao_departamentos' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold {% if request.resolver_match.url_name == 'gestao_departamentos' or request.resolver_match.url_name == 'detalhes_departamento' or request.resolver_match.url_name == 'detalhes_curso' %}active text-indigo-400 bg-indigo-500/10{% endif %}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                Gerenciar Departamentos 
+                Departamentos 
+            </a>
+
+            <a href="{% url 'gestao_usuarios' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold {% if request.resolver_match.url_name == 'gestao_usuarios' or request.resolver_match.url_name == 'criar_usuario_manual' %}active text-indigo-400 bg-indigo-500/10{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                Usuários
+            </a>
+
+            <a href="{% url 'gestao_salas' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold {% if request.resolver_match.url_name == 'gestao_salas' %}active text-indigo-400 bg-indigo-500/10{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Salas
+            </a>
+
+            <a href="{% url 'admin:index' %}" target="_blank" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                Segurança
             </a>
             {% endif %}
 
             {% if user.is_professor %}
-            <div class="pt-6 pb-2 px-4 uppercase text-[10px] font-black text-slate-600 tracking-[0.2em]">Docência</div>
-            <a href="{% url 'dashboard' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold">
+            <div class="pt-6 pb-2 px-4 uppercase text-[10px] font-black text-slate-600 tracking-[0.2em]">Painel do Docente</div>
+            <a href="{% url 'dashboard' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold {% if request.resolver_match.url_name == 'dashboard' %}active text-indigo-400 bg-indigo-500/10{% endif %}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                Grade Acadêmica
+                Disciplina
+            </a>
+            <a href="{% url 'abrir_turma' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold {% if request.resolver_match.url_name == 'abrir_turma' %}active text-indigo-400 bg-indigo-500/10{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                Gerenciamento de Alunos
+            </a>
+            {% endif %}
+
+            {% if user.is_aluno %}
+            <div class="pt-6 pb-2 px-4 uppercase text-[10px] font-black text-slate-600 tracking-[0.2em]">Painel do Aluno</div>
+            <a href="{% url 'dashboard' %}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'detalhes_disciplina_aluno' %}active text-indigo-400 bg-indigo-500/10{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Minhas Disciplinas
             </a>
             {% endif %}
         </nav>
-
-        <!-- System Status Component -->
-        <div class="p-4 mx-4 mb-6 bg-slate-900/50 rounded-xl border border-white/5">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[9px] font-bold text-slate-500 uppercase">System Status</span>
-                <span class="status-dot bg-emerald-500 animate-pulse"></span>
-            </div>
-            <div class="space-y-1">
-                <div class="flex justify-between text-[10px] mono">
-                    <span class="text-slate-400">Worker:</span>
-                    <span class="text-emerald-400">Online</span>
-                </div>
-                <div class="flex justify-between text-[10px] mono">
-                    <span class="text-slate-400">Redis:</span>
-                    <span class="text-emerald-400">Connected</span>
-                </div>
-            </div>
-        </div>
 
         <div class="p-4 border-t border-white/5">
             <div class="flex items-center gap-3 px-2">
@@ -109,7 +140,7 @@
                     <p class="text-xs font-bold text-white truncate">{{ user.get_full_name|default:user.username }}</p>
                     <form method="post" action="{% url 'account_logout' %}">
                         {% csrf_token %}
-                        <button type="submit" class="text-[10px] font-bold text-slate-500 hover:text-red-400 transition-colors">Encerrar Sessão</button>
+                        <button type="submit" class="text-[10px] font-bold text-slate-500 hover:text-red-400 transition-colors">Sair</button>
                     </form>
                 </div>
             </div>
@@ -120,6 +151,19 @@
         {% block content %}{% endblock %}
     </main>
 
+    <script>
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

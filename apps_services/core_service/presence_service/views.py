@@ -106,12 +106,13 @@ def registrar_presenca(request):
         })
 
     try:
-        _enfileirar_processamento(aluno, aula, user_ip, lat_aluno, lon_aluno)
+        # Processamento imediato para garantir que a interface reflita a presença
+        resultado = processar_presenca_task(aluno.id, aula.id, user_ip, lat_aluno, lon_aluno)
     except Exception:
         _release_presenca_lock(aluno, aula)
         return render(request, "classes/resultado.html", {
             "sucesso": False,
-            "erro": "Fila indisponivel. Tente novamente em instantes.",
+            "erro": "Erro ao processar registro. Tente novamente em instantes.",
             "aula": aula,
         })
 
@@ -147,13 +148,25 @@ def registrar_presenca_api(request):
         )
 
     try:
-        task_result = _enfileirar_processamento(aluno, aula, user_ip, lat_aluno, lon_aluno)
+        # Processamento imediato para garantir que a interface reflita a presença
+        resultado = processar_presenca_task(aluno.id, aula.id, user_ip, lat_aluno, lon_aluno)
     except Exception:
         _release_presenca_lock(aluno, aula)
         return _api_error_response(
-            "Fila de processamento indisponivel. Tente novamente em instantes.",
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            code='FILA_INDISPONIVEL',
+            "Erro no processamento da presença. Tente novamente em instantes.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            code='ERRO_PROCESSAMENTO',
         )
 
-    return _api_success_response(aula, task_id=task_result.id)
+    return Response({
+        'sucesso': True,
+        'codigo': 'PRESENCA_REGISTRADA',
+        'mensagem': 'Presenca registrada com sucesso.',
+        'dados': {
+            'aula_id': aula.id,
+            'disciplina': aula.turma.disciplina.nome,
+            'turma_id': aula.turma.id,
+            'sala': aula.sala.nome,
+            'presenca_id': resultado.get('presenca_id'),
+        },
+    }, status=status.HTTP_201_CREATED)
