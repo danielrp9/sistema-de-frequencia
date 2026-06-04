@@ -1,5 +1,5 @@
 # Usar uma imagem Python estável
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Evitar que o Python gere arquivos .pyc e garanta log em tempo real
 ENV PYTHONDONTWRITEBYTECODE 1
