@@ -1,57 +1,52 @@
 # Sistema de Controle de Frequência UFVJM
 
-Este projeto foi desenvolvido para a disciplina de **Sistemas Distribuídos**, sob a orientação do Prof. Alessandro Vivas Andrade. O sistema propõe uma solução robusta para o controle de presença estudantil, substituindo listas físicas por uma arquitetura distribuída e segura baseada em QR Codes dinâmicos e validações multifatoriais de contexto.
+Este projeto foi desenvolvido para a disciplina de **Sistemas Distribuídos**, sob orientação do Prof. Alessandro Vivas Andrade. A ideia do sistema é resolver o problema das listas de presença físicas usando uma estrutura moderna com QR Codes dinâmicos e validações automáticas de segurança.
 
-## 1. Arquitetura e Conceitos Distribuídos
+## Como o sistema funciona (Lógica Distribuída)
 
-O sistema não é apenas um gerenciador de registros, mas uma infraestrutura que implementa conceitos fundamentais de sistemas distribuídos:
-*   **Desacoplamento de Serviços:** Através de **Django Signals**, os módulos de usuários, acadêmico e presença comunicam-se de forma assíncrona.
-*   **Processamento de Background:** O registro de presença e os cálculos de infrequência são processados via **Celery** e **RabbitMQ**, garantindo que a resposta ao usuário seja imediata enquanto as operações pesadas ocorrem em paralelo.
-*   **Consistência e Concorrência:** O uso do **Redis** como *Distributed Lock Manager* impede que falhas de rede ou requisições duplicadas gerem inconsistências no banco de dados.
-
----
-
-## 2. Fluxo Estrutural e Regras de Negócio
-
-A maturidade do sistema reflete-se na sua lógica de governança e segurança, dividida em fases claras:
-
-### A. Construção da Base (Responsabilidade do Super Admin)
-O sistema não funciona de forma isolada; ele exige uma base de dados geográfica e institucional sólida:
-*   O **Administrador** deve mapear toda a universidade no sistema, cadastrando **Departamentos, Cursos e Disciplinas**.
-*   **Geolocalização das Salas:** Cada sala de aula é cadastrada com suas coordenadas de latitude e longitude exatas, além de um raio de tolerância (geofencing). Isso facilita o trabalho do professor, que apenas seleciona uma sala já mapeada para abrir sua aula.
-*   **Gestão de Cargas Horárias:** O Admin define a carga horária total de cada disciplina. Esta informação é a base para o cálculo automático do limite de 25% de faltas permitido pelo regulamento acadêmico.
-
-### B. Ciclo de Vida dos Usuários e Segurança de Acesso
-*   **Professores:** Podem realizar o cadastro por conta própria, mas o acesso é **bloqueado por padrão**. Para evitar que qualquer usuário assuma privilégios docentes indevidamente, a ativação das funcionalidades de professor exige **aprovação manual do Admin**.
-*   **Alunos:** Podem se cadastrar livremente, porém, enquanto não forem vinculados a uma disciplina por um professor, permanecem como "usuários sem funcionalidades", garantindo que o sistema não seja usado de forma indevida ou para consultas de dados aos quais o aluno ainda não possui direito.
-
-### C. Validação Multifatorial de Presença
-O sistema impõe barreiras rigorosas para garantir que o aluno esteja, de fato, em sala:
-*   **Identificação de IP de Rede:** O registro de presença só é concluído se o dispositivo do aluno estiver conectado à **rede institucional da universidade**. Tentativas de registro via redes externas (casa, 4G/5G) são sumariamente barradas.
-*   **Geofencing (GPS):** Mesmo na rede correta, o sistema verifica a geolocalização. Se o aluno não estiver posicionado dentro do raio geográfico da sala onde a aula ocorre, o backend bloqueia a conclusão da presença.
-*   **QR Code Dinâmico:** O token do QR Code é rotativo (UUID), impedindo que o aluno registre presença usando fotos ou capturas de tela enviadas por colegas fora do ambiente.
-
-### D. Automação de Infrequência e Monitoramento
-Seguindo o regulamento institucional, o sistema realiza o cálculo automático de frequência:
-*   A partir da **Carga Horária Total** cadastrada pelo Admin, o sistema monitora cada hora-aula registrada.
-*   Ao atingir o limite crítico (próximo aos 25% de faltas permitidas), o sistema gera informações e alertas tanto para o aluno quanto para o professor. Essa automação garante consistência acadêmica e evita erros manuais no fechamento de diários.
+Para garantir que o sistema seja confiável e aguente o uso real, aplicamos alguns conceitos fundamentais:
+*   **Tarefas em segundo plano:** O registro de presença e os cálculos de faltas não travam o site. Usamos **Celery** e **RabbitMQ** para processar tudo isso por fora, deixando a resposta pro usuário bem rápida.
+*   **Organização por Sinais:** Os módulos do sistema (alunos, professores, presença) conversam entre si de forma organizada através de **Signals**, o que facilita muito a manutenção.
+*   **Controle de Concorrência:** Usamos o **Redis** para garantir que uma presença não seja registrada duas vezes por erro de rede ou cliques repetidos.
 
 ---
 
-## 3. Guia de Execução (Docker)
+## Regras do Sistema e Fluxo de Uso
 
-Esta configuração permite que o sistema rode em qualquer ambiente Linux/Windows/Mac com Docker instalado, configurando automaticamente o PostgreSQL, Redis e RabbitMQ.
+O sistema foi pensado com uma lógica de segurança em camadas para que ninguém consiga "burlar" a presença.
 
-### 1. Preparação das Variáveis de Ambiente
-Por segurança, as credenciais não são enviadas pelo Git. Crie o arquivo `.env` em `apps_services/core_service/.env`:
+### 1. Configuração da Base (Admin)
+Antes de tudo, o **Administrador** precisa preparar o terreno:
+*   É necessário cadastrar os Departamentos, Cursos e as Disciplinas.
+*   **Mapeamento das Salas:** Cada sala de aula deve ser cadastrada com sua geolocalização exata (latitude/longitude) e um raio de tolerância. Assim, o professor só precisa escolher a sala na hora de abrir a aula, sem precisar configurar nada manualmente.
+*   **Cargas Horárias:** O Admin define o total de horas de cada disciplina. O sistema usa isso para calcular automaticamente o limite de 25% de faltas permitido, avisando o aluno e o professor quando a situação ficar crítica.
+
+### 2. Controle de Acesso e Perfis
+*   **Professores:** Podem se cadastrar, mas ficam **bloqueados** até que o Administrador aprove o acesso. Isso evita que qualquer pessoa se passe por docente.
+*   **Alunos:** O cadastro é livre, mas o aluno não tem acesso a nada enquanto não for matriculado em uma turma por um professor.
+
+### 3. Validações para a Presença
+Para que o aluno consiga registrar a presença, ele precisa passar por três barreiras:
+*   **Rede da Universidade:** O sistema identifica o IP e só aceita o registro se o aluno estiver conectado no Wi-Fi/Rede institucional.
+*   **Localização (GPS):** O sistema verifica se o aluno está realmente dentro da sala de aula (baseado na geolocalização cadastrada pelo Admin). Se estiver fora do raio, a presença é barrada.
+*   **QR Code Dinâmico:** O código gerado pelo professor muda sozinho de tempos em tempos. Se alguém tirar foto e mandar pra um colega fora da sala, o código já terá expirado.
+
+---
+
+## Como rodar o projeto (Docker)
+
+A forma mais fácil de executar o sistema é usando o Docker, que já configura o Banco de Dados (Postgres), o Redis e o RabbitMQ sozinho.
+
+### 1. Configurando o arquivo .env
+Para o sistema funcionar corretamente, você **deve** criar um arquivo chamado `.env` dentro da pasta `apps_services/core_service/`. Use o formato abaixo para que as conexões funcionem de primeira:
 
 ```env
-# Django Config
+# Configurações do Django
 DJANGO_SECRET_KEY='sua-chave-secreta-aqui'
 DJANGO_DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
-# Database (PostgreSQL no Docker)
+# Banco de Dados (PostgreSQL no Docker)
 DB_NAME=frequencia_db
 DB_USER=postgres
 DB_PASSWORD=postgres
@@ -62,30 +57,32 @@ DB_PORT=5432
 REDIS_URL=redis://redis:6379/1
 CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
 
-# Outras Configurações
+# Outros ajustes
 PRESENCA_DUPLICATE_LOCK_TIMEOUT=60
 ```
 
-### 2. Inicialização do Ambiente
+### 2. Subindo os containers
+Com o Docker instalado, abra o terminal na raiz do projeto e rode:
 ```bash
 docker-compose up --build
 ```
-Após o build, o sistema estará disponível em `http://localhost:8000`.
+Depois que terminar de carregar, o sistema estará pronto em `http://localhost:8000`.
 
-### 3. Setup do Administrador
+### 3. Criando o acesso de Administrador
+Com os containers ligados, abra outro terminal e execute:
 ```bash
 docker-compose exec web python manage.py createsuperuser
 ```
 
 ---
 
-## Checklist de Requisitos (Sistemas Distribuídos)
+## Checklist do que foi feito
 
-- [x] **Persistência Distribuída:** PostgreSQL com auditoria via Simple History.
-- [x] **Mensageria e Filas:** Implementada com RabbitMQ e Celery.
-- [x] **Coordenação de Recursos:** Lock distribuído via Redis para evitar race conditions.
-- [x] **Filtros de Camada:** Validação por IP Institucional e Geofencing de precisão.
-- [x] **Segurança de Acesso:** Fluxo de aprovação administrativa de docentes.
+- [x] **Banco de Dados:** PostgreSQL com histórico de auditoria.
+- [x] **Mensageria:** RabbitMQ e Celery para tarefas assíncronas.
+- [x] **Segurança:** Bloqueio por IP Institucional e Geolocalização.
+- [x] **Controle:** Lock no Redis para evitar duplicidade.
+- [x] **Gestão:** Fluxo de aprovação de professores e vínculo de alunos.
 
 ## Autores
 - Daniel Rodrigues
