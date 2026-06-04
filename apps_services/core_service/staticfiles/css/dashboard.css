@@ -1,0 +1,45 @@
+@keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+.scanner-line {
+    height: 2px;
+    background: linear-gradient(to right, transparent, #6366f1, transparent);
+    animation: scan 2s linear infinite;
+}
+.modal-overlay { 
+    background: rgba(2, 6, 23, 0.95); 
+    backdrop-filter: blur(12px); 
+    display: none; 
+}
+.modal-overlay.active { display: flex; }
+
+.glass-card-modern {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1.25rem;
+}
+
+/* Acessibilidade: Foco visível para navegação via teclado */
+a:focus-visible, button:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 4px;
+}
+
+.btn-primary-modern {
+    background: #6366f1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-primary-modern:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5);
+}
+.admin-stat-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.8));
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+.chart-panel {
+    height: 320px;
+    position: relative;
+}
