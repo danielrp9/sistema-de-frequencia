@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
     {% block extra_style %}{% endblock %}
 </head>
-<body class="flex flex-col md:flex-row">
+<body class="flex flex-col md:flex-row theme-{{ user.theme_preference|default:'default' }}">
 
     <!-- Mobile Header -->
     <div class="md:hidden glass-sidebar p-4 flex justify-between items-center border-b border-white/5 sticky top-0 z-[60]">

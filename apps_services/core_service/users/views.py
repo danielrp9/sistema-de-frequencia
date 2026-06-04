@@ -553,3 +553,20 @@ def historico_sistema(request):
 @method_decorator(never_cache, name='dispatch')
 class AccountLoginView(LoginView):
     template_name = 'account/login.html'
+
+@login_required
+def configuracoes_usuario(request):
+    if request.method == 'POST':
+        theme = request.POST.get('theme')
+        
+        if theme in dict(User.THEME_CHOICES):
+            request.user.theme_preference = theme
+            
+        request.user.save()
+        messages.success(request, "Configurações de tema atualizadas com sucesso.")
+        return redirect('configuracoes_usuario')
+        
+    return render(request, 'users/configuracoes.html', {
+        'view_name': 'Configurações',
+        'is_settings': True
+    })

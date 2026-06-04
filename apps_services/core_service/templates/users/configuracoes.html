@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="javascript:history.back()" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">Configurações <span class="text-indigo-500">do Sistema</span></h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1">Personalização e Preferências de Acesso</p>
+            </div>
+        </div>
+        <div class="header-accent"></div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-12">
+        <!-- Sidebar de Navegação Interna -->
+        <div class="space-y-4">
+            <div class="glass-surface p-6 rounded-[2rem] border-indigo-500/20">
+                <nav class="space-y-2">
+                    <button class="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-indigo-400 bg-indigo-500/10 rounded-xl">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Preferências Gerais
+                    </button>
+                    <!-- Mais abas podem ser adicionadas aqui no futuro -->
+                </nav>
+            </div>
+            
+            <div class="glass-surface p-6 rounded-[2rem] border-white/5 opacity-50">
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest text-center">Mais opções em breve</p>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="lg:col-span-2">
+            <form method="post" class="glass-surface p-8 md:p-10 rounded-[2.5rem] space-y-10">
+                {% csrf_token %}
+                
+                <!-- Sessão de Aparência -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 pb-2 border-b border-white/5">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                        <h2 class="text-xs font-black text-white uppercase tracking-[0.2em]">Interface e Temas</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="theme" value="default" class="hidden peer" {% if user.theme_preference == 'default' %}checked{% endif %}>
+                            <div class="p-6 rounded-2xl bg-slate-950 border border-white/10 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/5 transition-all group-hover:border-white/20">
+                                <div class="w-full h-20 bg-gradient-to-br from-indigo-900/40 to-slate-900 rounded-lg mb-4 flex items-center justify-center border border-white/5">
+                                    <div class="w-10 h-10 rounded-full bg-indigo-500 blur-xl opacity-30"></div>
+                                </div>
+                                <span class="block text-center text-[11px] font-bold text-slate-400 group-hover:text-white uppercase tracking-widest transition-colors">Padrão UFVJM</span>
+                            </div>
+                        </label>
+
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="theme" value="light" class="hidden peer" {% if user.theme_preference == 'light' %}checked{% endif %}>
+                            <div class="p-6 rounded-2xl bg-slate-950 border border-white/10 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/5 transition-all group-hover:border-white/20">
+                                <div class="w-full h-20 bg-slate-100 rounded-lg mb-4 flex items-center justify-center border border-white/5">
+                                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.95 11.95a3 3 0 11-4.243 0 3 3 0 014.243 0z"/></svg>
+                                </div>
+                                <span class="block text-center text-[11px] font-bold text-slate-400 group-hover:text-white uppercase tracking-widest transition-colors">Modo Claro</span>
+                            </div>
+                        </label>
+
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="theme" value="dark" class="hidden peer" {% if user.theme_preference == 'dark' %}checked{% endif %}>
+                            <div class="p-6 rounded-2xl bg-slate-950 border border-white/10 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/5 transition-all group-hover:border-white/20">
+                                <div class="w-full h-20 bg-slate-900 rounded-lg mb-4 flex items-center justify-center border border-white/5">
+                                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                                </div>
+                                <span class="block text-center text-[11px] font-bold text-slate-400 group-hover:text-white uppercase tracking-widest transition-colors">Modo Escuro</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-8 border-t border-white/5">
+                    <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/10">
+                        Aplicar Configurações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

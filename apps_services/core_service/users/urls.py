@@ -15,6 +15,7 @@ urlpatterns = [
     path('gestao/historico/', views.historico_sistema, name='historico_sistema'),
     path('historico-turmas/', views.historico_turmas_professor, name='historico_turmas_professor'),
     path('perfil/', views.meu_perfil, name='meu_perfil'),
+    path('configuracoes/', views.configuracoes_usuario, name='configuracoes_usuario'),
     path('notificacao/<int:notif_id>/ler/', views.marcar_notificacao_lida, name='marcar_notificacao_lida'),
     path('notificacoes/limpar/', views.limpar_notificacoes, name='limpar_notificacoes'),
     path('disciplina/<int:turma_id>/', views.detalhes_disciplina_aluno, name='detalhes_disciplina_aluno'),
