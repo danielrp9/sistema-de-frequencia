@@ -470,13 +470,27 @@ def meu_perfil(request):
 
     if request.method == "POST":
         if 'btn_save_profile' in request.POST and perfil:
-            # Apenas campos biográficos/contato podem ser editados pelo usuário
+            # Todos os dados pessoais podem ser editados, exceto e-mail
+            novo_nome = request.POST.get('nome')
+            perfil.nome = novo_nome
             perfil.telefone = request.POST.get('telefone')
             perfil.endereco = request.POST.get('endereco')
+            
             if user.is_aluno:
+                perfil.matricula = request.POST.get('matricula')
+                perfil.curso = request.POST.get('curso')
                 perfil.nome_pai = request.POST.get('nome_pai')
                 perfil.nome_mae = request.POST.get('nome_mae')
+            elif user.is_professor:
+                perfil.siape = request.POST.get('siape')
+                perfil.departamento = request.POST.get('departamento')
+            
             perfil.save()
+            
+            # Sincroniza nome com o modelo User
+            user.first_name = novo_nome
+            user.save()
+            
             messages.success(request, "SUCCESS_SYNC: Perfil atualizado com sucesso.")
             return redirect('meu_perfil')
         
@@ -553,6 +567,12 @@ def historico_sistema(request):
 @method_decorator(never_cache, name='dispatch')
 class AccountLoginView(LoginView):
     template_name = 'account/login.html'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        nome = self.request.user.first_name or self.request.user.username
+        messages.success(self.request, f"Conectado com sucesso como {nome}!")
+        return response
 
 @login_required
 def configuracoes_usuario(request):

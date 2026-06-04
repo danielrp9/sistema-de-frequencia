@@ -2,15 +2,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     const toasts = Array.from(document.querySelectorAll('.message-toast'));
     
-    // Logic to prevent redundant messages (e.g., "Você saiu" + "Conectado")
+    // Logic to prevent redundant/stale messages (e.g., "Você saiu" + "Conectado")
     const texts = toasts.map(t => t.innerText.toLowerCase());
-    const hasLogin = texts.some(t => t.includes('conectado') || t.includes('sucesso'));
+    const hasLogin = texts.some(t => t.includes('conectado') || t.includes('sucesso') || t.includes('bem-vindo') || t.includes('olá'));
     
     toasts.forEach((toast, index) => {
         const text = toast.innerText.toLowerCase();
         
-        // If logging in, skip the "logged out" stale message
-        if (hasLogin && text.includes('saiu')) {
+        // If logging in, skip the "logged out" stale message and any old access messages
+        if (hasLogin && (text.includes('saiu') || text.includes('encerrada') || text.includes('liberado'))) {
             toast.remove();
             return;
         }
@@ -22,19 +22,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Auto-remove after 5 seconds
         setTimeout(() => {
-            toast.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => toast.remove(), 500);
+            if (toast.parentElement) {
+                toast.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => toast.remove(), 500);
+            }
         }, 5000 + (100 * index));
     });
 });
 
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebar-overlay');
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+// Sidebar Selection with Fallback
+const getSidebar = () => document.getElementById('sidebar');
+const getOverlay = () => document.getElementById('sidebar-overlay');
+const getMobileMenuBtn = () => document.getElementById('mobileMenuBtn');
 
 // Sidebar Collapse Logic (Desktop)
 function toggleSidebarCollapse() {
+    const sidebar = getSidebar();
     if(!sidebar) return;
+    
     sidebar.classList.toggle('collapsed');
     const isCollapsed = sidebar.classList.contains('collapsed');
     localStorage.setItem('sidebarCollapsed', isCollapsed);
@@ -42,16 +47,24 @@ function toggleSidebarCollapse() {
 
 // Sidebar Mobile Toggle
 function toggleSidebarMobile() {
+    const sidebar = getSidebar();
+    const overlay = getOverlay();
     if(!sidebar || !overlay) return;
+    
     sidebar.classList.toggle('-translate-x-full');
     overlay.classList.toggle('hidden');
 }
 
-if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebarMobile);
-if(overlay) overlay.addEventListener('click', toggleSidebarMobile);
+// Global Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const mobileMenuBtn = getMobileMenuBtn();
+    const overlay = getOverlay();
+    const sidebar = getSidebar();
 
-// Restore state on load
-window.addEventListener('DOMContentLoaded', () => {
+    if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebarMobile);
+    if(overlay) overlay.addEventListener('click', toggleSidebarMobile);
+
+    // Restore state on load
     if (sidebar && localStorage.getItem('sidebarCollapsed') === 'true') {
         sidebar.classList.add('collapsed');
     }

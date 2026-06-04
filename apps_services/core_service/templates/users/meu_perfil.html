@@ -117,23 +117,37 @@
                         {% csrf_token %}
                         <input type="hidden" name="btn_save_profile" value="1">
 
-                        <!-- Immutable Fields (Info Only) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 opacity-50">
+                        <!-- Immutable Field (Email) -->
+                        <div class="space-y-2 opacity-50">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail Institucional (Não Editável)</label>
+                            <div class="w-full bg-slate-950 border border-white/5 rounded-xl px-5 py-4 text-sm text-slate-400 mono cursor-not-allowed">{{ user.email }}</div>
+                        </div>
+
+                        <!-- Main Identity Fields -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-2">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail Institucional</label>
-                                <div class="w-full bg-slate-950 border border-white/5 rounded-xl px-5 py-4 text-sm text-slate-400 mono cursor-not-allowed">{{ user.email }}</div>
+                                <label class="text-[10px] font-bold text-slate-300 uppercase tracking-widest ml-1">Nome Completo</label>
+                                <input type="text" name="nome" value="{{ perfil.nome|default:'' }}" required
+                                       class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 outline-none transition-all">
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">{{ tipo_id }}</label>
-                                <div class="w-full bg-slate-950 border border-white/5 rounded-xl px-5 py-4 text-sm text-slate-400 mono cursor-not-allowed">{{ identificador }}</div>
+                                <label class="text-[10px] font-bold text-slate-300 uppercase tracking-widest ml-1">{{ tipo_id }}</label>
+                                <input type="text" name="{% if user.is_aluno %}matricula{% else %}siape{% endif %}" value="{{ identificador }}" required
+                                       class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 outline-none transition-all mono">
                             </div>
                         </div>
 
-                        <!-- Editable Fields -->
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-slate-300 uppercase tracking-widest ml-1">Telefone de Contato</label>
-                            <input type="text" name="telefone" value="{{ perfil.telefone|default:'' }}" 
-                                   class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 outline-none transition-all mono" placeholder="(00) 00000-0000">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-300 uppercase tracking-widest ml-1">{% if user.is_aluno %}Curso{% else %}Departamento{% endif %}</label>
+                                <input type="text" name="{% if user.is_aluno %}curso{% else %}departamento{% endif %}" value="{% if user.is_aluno %}{{ perfil.curso }}{% else %}{{ perfil.departamento }}{% endif %}" required
+                                       class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 outline-none transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-300 uppercase tracking-widest ml-1">Telefone de Contato</label>
+                                <input type="text" name="telefone" value="{{ perfil.telefone|default:'' }}" 
+                                       class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 outline-none transition-all mono" placeholder="(00) 00000-0000">
+                            </div>
                         </div>
 
                         {% if user.is_aluno %}
@@ -171,7 +185,27 @@
                     <div class="glass-surface p-10 rounded-[2.5rem] space-y-10 relative overflow-hidden">
                         <div class="absolute bottom-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl"></div>
                         
-                        <h3 class="text-xs font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-6">Informações de Contato</h3>
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-6">Identidade Acadêmica</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="group">
+                                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">Nome Completo</p>
+                                <p class="text-sm font-bold text-white">{{ perfil.nome }}</p>
+                            </div>
+                            <div class="group">
+                                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">{{ tipo_id }}</p>
+                                <p class="text-sm font-bold text-slate-300 mono">{{ identificador }}</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="group">
+                                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">{% if user.is_aluno %}Curso{% else %}Departamento{% endif %}</p>
+                                <p class="text-sm font-bold text-white">{% if user.is_aluno %}{{ perfil.curso }}{% else %}{{ perfil.departamento }}{% endif %}</p>
+                            </div>
+                        </div>
+
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-6 pt-4">Informações de Contato</h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div class="group">

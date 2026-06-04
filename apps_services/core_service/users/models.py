@@ -24,6 +24,11 @@ class User(AbstractUser):
 
     history = HistoricalRecords()
 
+    def get_short_name(self):
+        """Retorna apenas o primeiro nome para evitar quebra de layout."""
+        name = self.first_name or self.username
+        return name.split()[0] if name else ""
+
     class Meta:
         verbose_name = 'Usuário'
         verbose_name_plural = 'Usuários'

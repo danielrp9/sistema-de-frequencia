@@ -45,7 +45,7 @@
 
     <div class="p-6 md:p-10 max-w-7xl mx-auto">
         <!-- WELCOME HERO BANNER -->
-        <div class="mb-10 relative">
+        <div class="mb-10 relative z-40">
             <div class="glass-surface p-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-8 md:gap-10 relative group rounded-[3rem] border-indigo-500/10 shadow-xl shadow-black/10">
                 <!-- Background Decoration Container (Clipped) -->
                 <div class="absolute inset-0 overflow-hidden rounded-[3rem] pointer-events-none">
@@ -67,14 +67,14 @@
                             
                             <!-- Initial Badge -->
                             <div class="absolute bottom-1.5 right-1.5 w-6 h-6 md:w-7 md:h-7 bg-indigo-600 rounded-lg flex items-center justify-center text-[9px] md:text-[10px] font-black shadow-lg border border-white/10 z-20">
-                                {{ user.first_name|slice:":1"|upper }}
+                                {{ user.get_short_name|slice:":1"|upper }}
                             </div>
                         </div>
                     </div>
 
                     <div class="flex-1 min-w-0 pr-12 md:pr-0">
                         <h1 class="text-xl md:text-5xl font-black text-white tracking-tighter italic leading-[1.1] truncate">
-                            Bem-vindo, <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-indigo-400">{{ user.first_name|default:user.username }}</span>
+                            Bem-vindo, <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-indigo-400">{{ user.get_short_name }}</span>
                         </h1>
                         <!-- Role & Access Info (Desktop Only) -->
                         <div class="hidden md:flex flex-wrap justify-start items-center gap-3 md:gap-4 mt-4 md:mt-6">
@@ -90,9 +90,9 @@
                 </div>
 
                 <!-- Action Hub: Horizontal Alignment Desktop, Clean Flow Mobile -->
-                <div class="flex flex-row items-center gap-4 relative z-20 w-full md:w-auto justify-center md:justify-end">
+                <div class="flex flex-row items-center gap-4 relative z-30 w-full md:w-auto justify-center md:justify-end">
                     <!-- Quick Action (Bottom on Mobile) -->
-                    <nav aria-label="Ações rápidas">
+                    <nav aria-label="Ações rápidas" class="relative z-10">
                         {% if is_aluno %}
                             <a href="{% url 'registrar_presenca_camera' %}" class="btn-primary-modern inline-block px-6 md:px-8 py-3.5 md:py-4 text-white rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest shadow-lg shadow-indigo-900/20 whitespace-nowrap">
                                 Scanner
@@ -105,7 +105,7 @@
                     </nav>
 
                     <!-- Notification Bell (Top-Right on Mobile) -->
-                    <div class="absolute top-8 right-8 md:relative md:top-0 md:right-0 group/notif">
+                    <div class="absolute top-8 right-8 md:relative md:top-0 md:right-0 group/notif z-50">
                         <button class="w-11 h-11 md:w-14 md:h-14 bg-slate-900/40 backdrop-blur-md border border-white/10 hover:border-indigo-500/30 rounded-2xl flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-all relative shadow-lg">
                             <svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                             {% if notificacoes %}
@@ -114,7 +114,7 @@
                         </button>
                         
                         <!-- Notifications Dropdown -->
-                        <div class="absolute right-0 md:right-0 mt-4 md:mt-6 w-[280px] md:w-96 bg-slate-900/95 backdrop-blur-xl border border-indigo-500/10 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl opacity-0 invisible group-hover/notif:opacity-100 group-hover/notif:visible transition-all duration-300 z-[100] overflow-hidden">
+                        <div class="absolute right-0 md:right-0 mt-4 md:mt-6 w-[280px] md:w-96 bg-slate-900/95 backdrop-blur-xl border border-indigo-500/10 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl opacity-0 invisible group-hover/notif:opacity-100 group-hover/notif:visible transition-all duration-300 z-[999] overflow-hidden">
                             <div class="p-5 md:p-6 border-b border-white/5 bg-slate-950/80 flex justify-between items-center">
                                 <h4 class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Notificações</h4>
                                 {% if notificacoes %}
