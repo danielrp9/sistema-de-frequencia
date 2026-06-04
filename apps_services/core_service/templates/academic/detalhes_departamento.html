@@ -1,60 +1,50 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="p-6 md:p-10">
-    <div class="mb-10">
-        <a href="{% url 'gestao_departamentos' %}" class="inline-flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-indigo-400 transition-colors">
-            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
-            Network Root
-        </a>
-        <h1 class="text-4xl font-black text-white tracking-tight mt-4 uppercase italic">Dept: <span class="text-indigo-500">{{ depto.name }}</span></h1>
-    </div>
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'gestao_departamentos' %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">Unidade: <span class="text-indigo-500">{{ depto.name }}</span></h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1 mono">Ref_Code: {{ depto.code }}</p>
+            </div>
+        </div>
+        <button onclick="document.getElementById('modal-curso').classList.remove('hidden')" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/40">
+            + Novo Curso
+        </button>
+        <div class="header-accent"></div>
+    </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <!-- Coluna Cursos -->
-        <section class="lg:col-span-7 space-y-6">
-            <div class="flex justify-between items-center bg-slate-900/50 p-5 rounded-2xl border border-white/5">
-                <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cursos</h2>
-                <button onclick="document.getElementById('modal-curso').classList.remove('hidden')" class="text-indigo-400 text-[10px] font-bold uppercase tracking-widest hover:text-indigo-300">+ Novo Curso</button>
-            </div>
-            
-            <div class="space-y-3">
-                {% for curso in cursos %}
-                <a href="{% url 'detalhes_curso' curso.id %}" class="block bg-slate-900/30 p-6 rounded-2xl border border-white/5 hover:border-indigo-500/40 transition-all group">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors leading-tight">{{ curso.name }}</h3>
-                            <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-1">Disciplinas: {{ curso.disciplinas.count }}</p>
-                        </div>
-                        <svg class="h-5 w-5 text-slate-700 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        </section>
-
-        <!-- Coluna Docentes -->
-        <section class="lg:col-span-5 space-y-6">
-            <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex justify-between items-center">
-                <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Corpo Docente</h2>
-                <span class="text-[10px] font-bold text-slate-600 mono">{{ todos_professores|length }} REGISTRO</span>
-            </div>
-            
-            <div class="grid grid-cols-1 gap-3">
-                {% for prof in todos_professores %}
-                <div class="bg-slate-900/20 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold text-sm border border-indigo-500/20">
-                        {{ prof.username|first|upper }}
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-xs font-bold text-white truncate">{{ prof.get_full_name|default:prof.username }}</p>
-                        <p class="text-[9px] font-bold text-slate-600 mono uppercase tracking-tight">{{ prof.username }}</p>
-                    </div>
+    <section class="space-y-6">
+        <div class="bg-slate-900/40 p-5 rounded-2xl border border-white/5 flex justify-between items-center mb-8">
+            <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cursos Mapeados</h2>
+            <span class="text-[10px] font-bold text-slate-600 mono">{{ cursos|length }} REGISTROS</span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for curso in cursos %}
+            <a href="{% url 'detalhes_curso' curso.id %}" class="block bg-slate-900/20 p-8 rounded-3xl border border-white/5 hover:border-indigo-500/40 transition-all group relative overflow-hidden">
+                <div class="absolute -top-4 -right-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg class="h-20 w-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                 </div>
-                {% endfor %}
+                <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors leading-tight italic">{{ curso.name }}</h3>
+                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-6">Disciplinas: {{ curso.disciplinas.count }}</p>
+                
+                <div class="flex items-center justify-between pt-6 mt-6 border-t border-white/5">
+                    <span class="text-[9px] font-bold text-slate-500 uppercase">Gerenciar Grade</span>
+                    <svg class="h-4 w-4 text-slate-700 group-hover:text-indigo-500 transition-all group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-span-full py-20 text-center bg-slate-900/10 rounded-3xl border border-dashed border-white/5">
+                <p class="text-slate-600 text-[10px] font-bold uppercase tracking-widest">Nenhum curso registrado para esta unidade</p>
             </div>
-        </section>
-    </div>
+            {% endfor %}
+        </div>
+    </section>
 </div>
 
 <!-- Modal -->
@@ -62,13 +52,16 @@
     <form method="post" class="bg-slate-900 p-8 rounded-3xl w-full max-w-md border border-white/10 shadow-2xl">
         {% csrf_token %}
         <input type="hidden" name="btn_curso" value="1">
-        <h2 class="text-lg font-bold text-white mb-6 uppercase tracking-tight">Registrar Curso</h2>
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-lg font-bold text-white uppercase tracking-tight italic">Registrar Curso</h2>
+            <button type="button" onclick="document.getElementById('modal-curso').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors">✕</button>
+        </div>
         <div class="space-y-4">
-            <input type="text" name="name" required placeholder="NOME_CURSO_INSTITUCIONAL" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-4 text-sm text-white outline-none focus:border-indigo-500 transition-all mono">
-            <div class="flex gap-4 pt-4">
-                <button type="button" onclick="document.getElementById('modal-curso').classList.add('hidden')" class="flex-1 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Abortar</button>
-                <button type="submit" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest">Confirmar</button>
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome Institucional</label>
+                <input type="text" name="name" required placeholder="Ex: Engenharia de Software" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-4 text-sm text-white outline-none focus:border-indigo-500 transition-all">
             </div>
+            <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-900/40">Confirmar Registro</button>
         </div>
     </form>
 </div>

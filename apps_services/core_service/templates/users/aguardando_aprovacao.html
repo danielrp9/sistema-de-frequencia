@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aguardando Aprovação | Sistema de Frequência</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(79, 70, 229, 0.08) 0px, transparent 50%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-6">
+
+    <div class="glass-card w-full max-w-lg rounded-[2.5rem] p-10 relative overflow-hidden text-center">
+        <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500/40 to-transparent"></div>
+        
+        <div class="w-20 h-20 bg-amber-500/10 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <svg class="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+
+        <header class="mb-10">
+            <h1 class="text-2xl font-black text-white tracking-tight mb-4">
+                Aguardando Liberação<span class="text-amber-500">.</span>
+            </h1>
+            <p class="text-sm font-medium text-slate-400 leading-relaxed">
+                Olá, <span class="text-white font-bold">{{ user.first_name|default:user.username }}</span>! <br>
+                Seu cadastro como <span class="text-emerald-400 font-bold uppercase tracking-widest text-[10px]">Docente</span> foi recebido com sucesso.
+            </p>
+        </header>
+
+        <div class="p-6 bg-slate-900/40 rounded-3xl border border-white/5 mb-10">
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
+                Para garantir a integridade do sistema acadêmico, o acesso ao painel do professor requer uma verificação manual pelo administrador. <br><br>
+                Você receberá acesso total assim que seu perfil for validado.
+            </p>
+        </div>
+
+        <form method="post" action="{% url 'account_logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="text-xs font-bold text-slate-500 hover:text-red-400 transition-colors uppercase tracking-widest">
+                Sair do Sistema
+            </button>
+        </form>
+
+        <footer class="mt-12 pt-8 border-t border-white/5">
+            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-[0.3em]">UFVJM &bull; Gestão Acadêmica</p>
+        </footer>
+    </div>
+
+</body>
+</html>

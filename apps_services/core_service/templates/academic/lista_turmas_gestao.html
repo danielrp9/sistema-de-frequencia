@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
+    <!-- Header -->
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-12">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'dashboard' %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">Gerenciar <span class="text-indigo-500">Turmas</span></h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1">Selecione uma disciplina para gestão operacional</p>
+            </div>
+        </div>
+        <div class="header-accent"></div>
+    </header>
+
+    <!-- Turmas Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for turma in turmas %}
+        <a href="{% url 'gerenciar_alunos_disciplina' turma.id %}" class="glass-surface glass-surface-hover p-8 rounded-3xl group relative overflow-hidden transition-all border-indigo-500/5">
+            <!-- Background Watermark Icon -->
+            <div class="absolute -top-4 -right-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                <svg class="h-20 w-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            </div>
+
+            <div class="flex justify-between items-start mb-4">
+                <span class="text-[10px] font-bold text-indigo-400 mono uppercase tracking-widest">{{ turma.disciplina.codigo }}</span>
+                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">{{ turma.semestre }}</span>
+            </div>
+            
+            <h3 class="text-2xl font-black text-white group-hover:text-indigo-400 transition-colors italic leading-tight uppercase tracking-tight">{{ turma.disciplina.nome }}</h3>
+            
+            <p class="text-slate-600 text-[10px] mt-8 font-bold uppercase tracking-[0.2em] flex items-center justify-between">
+                <span>Gestão Operacional</span>
+                <svg class="w-4 h-4 transition-transform group-hover:translate-x-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </p>
+        </a>
+        {% empty %}
+        <div class="col-span-full py-32 text-center bg-slate-900/20 rounded-[3rem] border border-dashed border-white/10">
+            <div class="w-20 h-20 bg-slate-800/50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 border border-white/5">
+                <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            </div>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Nenhuma turma ativa encontrada</p>
+            <a href="{% url 'abrir_turma' %}" class="text-indigo-400 hover:text-indigo-300 text-[10px] font-black uppercase tracking-widest">Abrir Nova Turma agora</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <footer class="mt-20 text-center">
+        <p class="text-[9px] text-slate-700 font-bold uppercase tracking-[0.4em] italic">Módulo de Gestão Acadêmica &bull; UFVJM</p>
+    </footer>
+</div>
+{% endblock %}

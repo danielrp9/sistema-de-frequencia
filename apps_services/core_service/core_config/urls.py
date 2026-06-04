@@ -8,6 +8,7 @@ urlpatterns = [
     
     path('admin/', admin.site.urls),
     path('accounts/login/', AccountLoginView.as_view(), name='account_login'),
+    path('accounts/signup/', RedirectView.as_view(url='/dashboard/cadastro/escolha/', permanent=True), name='account_signup'),
     path('accounts/', include('allauth.urls')),
     
     # APP URLS (Sem duplicatas)

@@ -1,16 +1,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="p-6 md:p-12 max-w-4xl mx-auto">
-    <header class="mb-10">
-        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2">Infraestrutura Acadêmica</p>
-        <h1 class="text-3xl font-black text-white tracking-tight uppercase italic">Gestão de <span class="text-indigo-500">Salas</span></h1>
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'dashboard' %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">Gestão de <span class="text-indigo-500">Salas</span></h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1">Localização e Infraestrutura Física</p>
+            </div>
+        </div>
+        <div class="header-accent"></div>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Formulário de Cadastro -->
         <div class="lg:col-span-1">
-            <form method="post" class="bg-slate-900/40 p-6 rounded-3xl border border-white/5 space-y-6">
+            <form method="post" class="glass-surface p-6 rounded-3xl space-y-6">
                 {% csrf_token %}
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-white/5 pb-4">Nova Sala</h3>
                 
@@ -50,9 +58,8 @@
             </form>
         </div>
 
-        <!-- Listagem de Salas Existentes -->
         <div class="lg:col-span-2">
-            <div class="glass-card-modern overflow-hidden border border-white/5">
+            <div class="glass-surface rounded-3xl overflow-hidden">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-white/5">

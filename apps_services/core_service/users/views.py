@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
+from django.db.models import Sum
 from django_redis import get_redis_connection
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -8,7 +9,49 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
-from allauth.account.views import LoginView
+from allauth.account.views import LoginView, SignupView
+from .forms import AlunoSignupForm, ProfessorSignupForm
+
+class AlunoSignupView(SignupView):
+    template_name = 'account/signup_aluno.html'
+    form_class = AlunoSignupForm
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.user
+        user.is_aluno = True
+        user.is_approved = True
+        user.save()
+        
+        # Atualiza ou cria o perfil com os dados do form
+        aluno_perfil, _ = Aluno.objects.get_or_create(user=user)
+        aluno_perfil.nome = form.cleaned_data.get('nome_completo')
+        aluno_perfil.matricula = form.cleaned_data.get('matricula')
+        aluno_perfil.email = user.email
+        aluno_perfil.save()
+        return response
+
+class ProfessorSignupView(SignupView):
+    template_name = 'account/signup_professor.html'
+    form_class = ProfessorSignupForm
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.user
+        user.is_professor = True
+        user.is_approved = False
+        user.save()
+
+        # Atualiza ou cria o perfil com os dados do form
+        prof_perfil, _ = Professor.objects.get_or_create(user=user)
+        prof_perfil.nome = form.cleaned_data.get('nome_completo')
+        prof_perfil.siape = form.cleaned_data.get('siape')
+        prof_perfil.email = user.email
+        prof_perfil.save()
+        return response
+
+def signup_choice(request):
+    return render(request, 'account/signup.html')
 
 from core_config.celery import app as celery_app
 from .models import User, Aluno, Professor
@@ -111,25 +154,61 @@ def build_aluno_chart_data(disciplinas):
     }
 
 
+from django.urls import reverse
+from .models import User, Aluno, Professor, Notification
+from .services import NotificationService
+
+@login_required
+def marcar_notificacao_lida(request, notif_id):
+    notif = get_object_or_404(Notification, id=notif_id, user=request.user)
+    notif.is_read = True
+    notif.save()
+    if notif.link:
+        return redirect(notif.link)
+    return redirect('dashboard')
+
+@login_required
+def limpar_notificacoes(request):
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    messages.success(request, "Todas as notificações foram limpas.")
+    return redirect('dashboard')
+
 # --- ACESSO AO DASHBOARD ---
 @login_required
 def dashboard(request):
     user = request.user
+    
+    # Validação de Aprovação para Professores
+    if getattr(user, 'is_professor', False) and not getattr(user, 'is_approved', True):
+        return render(request, 'users/aguardando_aprovacao.html')
+
     is_professor = getattr(user, 'is_professor', False)
     is_aluno = getattr(user, 'is_aluno', False)
     is_admin = user.is_superuser
+
+    # Sincronização Dinâmica de Notificações (Service Layer)
+    NotificationService.sync_professor_notifications(user)
+    NotificationService.sync_student_notifications(user)
+
+    if is_admin:
+        pendentes = User.objects.filter(is_professor=True, is_approved=False).count()
+        if pendentes > 0:
+            link = reverse('gestao_usuarios') + "?role=professor"
+            if not Notification.objects.filter(user=user, link=link, is_read=False).exists():
+                Notification.objects.create(user=user, title="Aprovação Pendente", message=f"{pendentes} professores aguardam aprovação.", link=link, type='warning')
+
+    notificacoes_qs = Notification.objects.filter(user=user, is_read=False)
 
     context = {
         'user': user,
         'is_professor': is_professor or is_admin,
         'is_aluno': is_aluno,
         'tipo': 'Administrador' if is_admin else 'Professor' if is_professor else 'Estudante',
+        'notificacoes': notificacoes_qs,
     }
 
     if is_admin:
         context['departamentos'] = Department.objects.all()
-        # Lista todas as turmas ativas para supervisão básica
-        context['turmas_sistema'] = Turma.objects.filter(ativa=True).select_related('disciplina', 'professor')[:10]
         context['infra_status'] = get_infra_status()
     
     elif is_professor:
@@ -142,10 +221,8 @@ def dashboard(request):
         try:
             turmas = Turma.objects.filter(alunos__user=user, ativa=True).select_related('disciplina', 'professor')
             disciplinas = [t.disciplina for t in turmas]
-            # No dashboard inicial, apenas listamos as turmas para não sobrecarregar
             serializer = DisciplinaResumoSerializer(disciplinas, many=True, context={'aluno': user.perfil_aluno})
             
-            # Mapeamos os dados serializados de volta para as turmas para ter acesso ao ID da Turma no template
             turmas_data = []
             for i, t in enumerate(turmas):
                 item = serializer.data[i]
@@ -158,6 +235,19 @@ def dashboard(request):
             context['disciplinas_aluno'] = []
 
     return render(request, 'dashboard.html', context)
+
+@login_required
+def historico_turmas_professor(request):
+    """Exibe o histórico de turmas encerradas do professor."""
+    if not getattr(request.user, 'is_professor', False):
+        return redirect('dashboard')
+    
+    professor_perfil = get_object_or_404(Professor, user=request.user)
+    turmas_encerradas = Turma.objects.filter(professor=professor_perfil, ativa=False).select_related('disciplina').order_by('-id')
+    
+    return render(request, 'academic/historico_turmas_professor.html', {
+        'turmas_encerradas': turmas_encerradas
+    })
 
 @login_required
 def detalhes_disciplina_aluno(request, turma_id):
@@ -200,6 +290,23 @@ def admin_only(user):
     return user.is_superuser
 
 @user_passes_test(admin_only)
+def aprovar_usuario(request, user_id):
+    user_to_approve = get_object_or_404(User, id=user_id)
+    user_to_approve.is_approved = True
+    user_to_approve.save()
+    
+    # Notificação para o professor aprovado
+    Notification.objects.create(
+        user=user_to_approve,
+        title="Acesso Liberado",
+        message=f"Olá {user_to_approve.first_name}, seu acesso como Docente foi aprovado. Agora você tem acesso total ao sistema.",
+        type='info'
+    )
+    
+    messages.success(request, f"ACCESS_GRANTED: O acesso de {user_to_approve.username} foi liberado.")
+    return redirect('gestao_usuarios')
+
+@user_passes_test(admin_only)
 def gestao_usuarios(request):
     usuarios = User.objects.all().order_by('-date_joined')
     role = request.GET.get('role')
@@ -212,30 +319,234 @@ def gestao_usuarios(request):
         'usuarios': usuarios,
         'total_professores': User.objects.filter(is_professor=True).count(),
         'total_alunos': User.objects.filter(is_aluno=True).count(),
+        'current_role': role or 'all',
     }
     return render(request, 'users/gestao_usuarios.html', context)
 
 @user_passes_test(admin_only)
 def criar_usuario_manual(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
         email = request.POST.get('email')
+        nome_completo = request.POST.get('nome_completo')
         password = request.POST.get('password')
         role = request.POST.get('role')
+        identificador = request.POST.get('identificador')
         
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "ERRO_DUP: Nome de usuário já existe.")
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "ERRO_DUP: Este e-mail já está cadastrado.")
         else:
-            User.objects.create_user(
-                username=username,
+            new_user = User.objects.create_user(
+                username=email,  # Username é o e-mail
                 email=email,
                 password=password,
+                first_name=nome_completo,
                 is_professor=(role == 'professor'),
-                is_aluno=(role == 'aluno')
+                is_aluno=(role == 'aluno'),
+                is_approved=True
             )
-            messages.success(request, f"NODE_CREATED: Usuário {username} registrado como {role}.")
+            
+            if role == 'aluno':
+                aluno_perfil, _ = Aluno.objects.get_or_create(user=new_user)
+                aluno_perfil.matricula = identificador
+                aluno_perfil.save()
+            elif role == 'professor':
+                prof_perfil, _ = Professor.objects.get_or_create(user=new_user)
+                prof_perfil.siape = identificador
+                prof_perfil.save()
+
+            messages.success(request, f"NODE_CREATED: Usuário {email} registrado como {role}.")
             return redirect('gestao_usuarios')
     return render(request, 'users/form_usuario.html')
+
+@user_passes_test(admin_only)
+def detalhes_usuario(request, user_id):
+    """Exibe os dados do usuário em modo leitura antes da edição."""
+    user_obj = get_object_or_404(User, id=user_id)
+    identificador = "N/A"
+    perfil = None
+    if user_obj.is_aluno and hasattr(user_obj, 'perfil_aluno'):
+        perfil = user_obj.perfil_aluno
+        identificador = perfil.matricula
+    elif user_obj.is_professor and hasattr(user_obj, 'perfil_professor'):
+        perfil = user_obj.perfil_professor
+        identificador = perfil.siape
+
+    return render(request, 'users/detalhes_usuario.html', {
+        'user_obj': user_obj,
+        'perfil': perfil,
+        'identificador': identificador,
+        'tipo_identificador': 'SIAPE' if user_obj.is_professor else 'Matrícula'
+    })
+
+@user_passes_test(admin_only)
+def editar_usuario(request, user_id):
+    user_to_edit = get_object_or_404(User, id=user_id)
+    perfil = None
+    if user_to_edit.is_aluno and hasattr(user_to_edit, 'perfil_aluno'):
+        perfil = user_to_edit.perfil_aluno
+    elif user_to_edit.is_professor and hasattr(user_to_edit, 'perfil_professor'):
+        perfil = user_to_edit.perfil_professor
+
+    if request.method == 'POST':
+        nome_completo = request.POST.get('nome_completo')
+        email = request.POST.get('email')
+        role = request.POST.get('role')
+        identificador = request.POST.get('identificador')
+        is_approved = request.POST.get('is_approved') == 'on'
+        
+        # Novos campos
+        telefone = request.POST.get('telefone')
+        endereco = request.POST.get('endereco')
+        nome_pai = request.POST.get('nome_pai')
+        nome_mae = request.POST.get('nome_mae')
+
+        user_to_edit.first_name = nome_completo
+        user_to_edit.email = email
+        user_to_edit.username = email
+        user_to_edit.is_professor = (role == 'professor')
+        user_to_edit.is_aluno = (role == 'aluno')
+        user_to_edit.is_approved = is_approved
+        user_to_edit.save()
+
+        if role == 'aluno':
+            p, _ = Aluno.objects.get_or_create(user=user_to_edit)
+            p.nome = nome_completo
+            p.email = email
+            p.matricula = identificador
+            p.telefone = telefone
+            p.endereco = endereco
+            p.nome_pai = nome_pai
+            p.nome_mae = nome_mae
+            p.save()
+        elif role == 'professor':
+            p, _ = Professor.objects.get_or_create(user=user_to_edit)
+            p.nome = nome_completo
+            p.email = email
+            p.siape = identificador
+            p.telefone = telefone
+            p.endereco = endereco
+            p.save()
+
+        messages.success(request, f"NODE_UPDATED: Dados de {user_to_edit.get_full_name()} atualizados.")
+        return redirect('gestao_usuarios')
+
+    identificador = ""
+    if user_to_edit.is_aluno and perfil:
+        identificador = perfil.matricula
+    elif user_to_edit.is_professor and perfil:
+        identificador = perfil.siape
+
+    return render(request, 'users/form_usuario.html', {
+        'edit_mode': True,
+        'user_to_edit': user_to_edit,
+        'perfil': perfil,
+        'identificador': identificador
+    })
+
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+
+@login_required
+def meu_perfil(request):
+    """Módulo de perfil pessoal para visualização e edição de dados biográficos."""
+    user = request.user
+    perfil = None
+    tipo_id = "N/A"
+    identificador = "N/A"
+
+    if user.is_aluno:
+        perfil = getattr(user, 'perfil_aluno', None)
+        tipo_id = "Matrícula"
+        identificador = perfil.matricula if perfil else "N/A"
+    elif user.is_professor:
+        perfil = getattr(user, 'perfil_professor', None)
+        tipo_id = "SIAPE"
+        identificador = perfil.siape if perfil else "N/A"
+
+    edit_mode = request.GET.get('edit') == 'true'
+    password_mode = request.GET.get('password') == 'true'
+    
+    password_form = PasswordChangeForm(user)
+
+    if request.method == "POST":
+        if 'btn_save_profile' in request.POST and perfil:
+            # Apenas campos biográficos/contato podem ser editados pelo usuário
+            perfil.telefone = request.POST.get('telefone')
+            perfil.endereco = request.POST.get('endereco')
+            if user.is_aluno:
+                perfil.nome_pai = request.POST.get('nome_pai')
+                perfil.nome_mae = request.POST.get('nome_mae')
+            perfil.save()
+            messages.success(request, "SUCCESS_SYNC: Perfil atualizado com sucesso.")
+            return redirect('meu_perfil')
+        
+        elif 'btn_change_password' in request.POST:
+            password_form = PasswordChangeForm(user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user) # Mantém logado após trocar senha
+                messages.success(request, "PASS_SECURED: Senha alterada com sucesso.")
+                return redirect('meu_perfil')
+            else:
+                password_mode = True # Mantém no formulário de senha se houver erro
+
+    return render(request, 'users/meu_perfil.html', {
+        'perfil': perfil,
+        'tipo_id': tipo_id,
+        'identificador': identificador,
+        'edit_mode': edit_mode,
+        'password_mode': password_mode,
+        'password_form': password_form,
+    })
+
+@user_passes_test(admin_only)
+def historico_sistema(request):
+    """Exibe um log unificado de ações do sistema (Audit Log)."""
+    from presence_service.models import Presenca
+    from academic.models import Turma, Sala
+    
+    # Pegando os registros mais recentes de várias tabelas
+    user_h = User.history.all()[:30]
+    turma_h = Turma.history.all()[:20]
+    sala_h = Sala.history.all()[:10]
+    
+    logs = []
+    
+    # Processando Histórico de Usuários
+    for h in user_h:
+        nome = f"{h.first_name} {h.last_name}".strip() or h.username
+        tipo_acao = "CRIADO" if h.history_type == "+" else "ALTERADO" if h.history_type == "~" else "REMOVIDO"
+        logs.append({
+            'data': h.history_date,
+            'tipo': 'USUÁRIO',
+            'user': h.history_user,
+            'msg': f"{tipo_acao}: {nome} ({h.email})"
+        })
+        
+    # Processando Histórico de Turmas
+    for h in turma_h:
+        tipo_acao = "CRIADA" if h.history_type == "+" else "ALTERADA" if h.history_type == "~" else "ENCERRADA"
+        nome_disc = h.disciplina.nome if h.disciplina else "Disciplina Removida"
+        logs.append({
+            'data': h.history_date,
+            'tipo': 'TURMA',
+            'user': h.history_user,
+            'msg': f"{tipo_acao}: {nome_disc} ({h.semestre})"
+        })
+
+    # Processando Histórico de Salas
+    for h in sala_h:
+        logs.append({
+            'data': h.history_date,
+            'tipo': 'SALA',
+            'user': h.history_user,
+            'msg': f"SALA_{h.history_type}: {h.nome} ({h.predio})"
+        })
+    
+    # Ordena por data decrescente
+    logs = sorted(logs, key=lambda x: x['data'], reverse=True)[:60]
+    
+    return render(request, 'users/historico.html', {'logs': logs})
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')

@@ -1,20 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="p-6 md:p-12 max-w-2xl mx-auto">
-    <header class="mb-10 text-center">
-        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2">Sessão</p>
-        <h1 class="text-3xl font-black text-white tracking-tight uppercase italic">Lançar <span class="text-indigo-500">Aula</span></h1>
-        <p class="text-slate-500 text-xs font-medium mt-2">Inicie uma nova chamada dinâmica vinculada a uma sala.</p>
-    </header>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] mono font-bold uppercase tracking-widest">
-                {{ message }}
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'dashboard' %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">Lançar <span class="text-indigo-500">Aula</span></h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1">Chamada dinâmica via Sala de Aula</p>
             </div>
-        {% endfor %}
-    {% endif %}
+        </div>
+        <div class="header-accent"></div>
+    </header>
 
     <form method="post" class="bg-slate-900/40 p-8 md:p-10 rounded-3xl border border-white/5 shadow-2xl space-y-8">
         {% csrf_token %}

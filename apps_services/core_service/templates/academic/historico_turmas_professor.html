@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'dashboard' %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">Histórico de <span class="text-indigo-500">Turmas</span></h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1">Turmas Encerradas e Consolidadas</p>
+            </div>
+        </div>
+        <div class="header-accent"></div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for turma in turmas_encerradas %}
+        <div class="bg-slate-950/40 p-6 rounded-3xl border border-white/5 opacity-80 hover:opacity-100 hover:border-indigo-500/20 transition-all group relative overflow-hidden">
+            <div class="absolute -top-4 -right-4 p-8 opacity-5">
+                <svg class="h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            
+            <div class="flex justify-between items-start mb-6">
+                <span class="text-[9px] font-bold bg-slate-900 text-slate-500 px-3 py-1 rounded-md uppercase mono border border-white/5">{{ turma.disciplina.codigo }}</span>
+                <span class="text-[8px] font-black text-red-500/60 uppercase tracking-widest px-2 py-1 bg-red-500/5 rounded border border-red-500/10">Encerrada</span>
+            </div>
+            
+            <h3 class="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors italic leading-tight">{{ turma.disciplina.nome }}</h3>
+            <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ turma.semestre }}</p>
+            
+            <div class="mt-8 pt-6 border-t border-white/5">
+                <a href="{% url 'gerenciar_alunos_disciplina' turma.id %}" class="block text-center py-3 bg-white/5 hover:bg-indigo-600 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-all border border-white/10">
+                    Consultar Registros
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center bg-slate-900/10 rounded-[2rem] border border-dashed border-white/10">
+            <p class="text-slate-600 text-[10px] font-bold uppercase tracking-widest">Nenhuma turma no histórico de consolidação</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,33 +1,72 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="p-6 md:p-10 max-w-7xl mx-auto">
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
     <!-- Header -->
-    <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div>
-            <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-400 transition-colors mb-4 group">
-                <svg class="h-3 w-3 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-widest">Voltar para Início</span>
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'dashboard' %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
             </a>
-            <h1 class="text-3xl font-black text-white tracking-tight uppercase italic">{{ disciplina.nome }}</h1>
-            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1 mono">{{ disciplina.codigo }} // SEMESTRE: {{ turma.semestre }}</p>
+            <div>
+                <h1 class="page-title">{{ disciplina.nome }}</h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1 mono">{{ disciplina.codigo }} // SEMESTRE: {{ turma.semestre }}</p>
+            </div>
         </div>
 
-        <div class="flex gap-3">
-            <button onclick="document.getElementById('modalAlunos').classList.add('flex'); document.getElementById('modalAlunos').classList.remove('hidden');" 
-                    class="px-6 py-3 bg-white/5 border border-white/10 text-white hover:bg-white/10 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all">
-                Cadastrar Alunos
-            </button>
-            <button onclick="window.print()" class="px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-500 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/20">
-                Exportar Relatório
-            </button>
+        <div class="flex flex-wrap items-center gap-2">
+            {% if turma.ativa %}
+                <div class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-white/5">
+                    <!-- Frequency Sheet (New) -->
+                    <a href="{% url 'folha_frequencia_turma' turma.id %}" 
+                       class="flex items-center gap-1.5 px-3 py-1.5 text-slate-400 hover:text-indigo-400 rounded-lg font-bold text-[8px] uppercase tracking-wider transition-all">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Lista de Frequência</span>
+                    </a>
+
+                    <!-- Reprovados Action -->
+                    <button onclick="document.getElementById('modalReprovados').classList.add('flex'); document.getElementById('modalReprovados').classList.remove('hidden');" 
+                            class="flex items-center gap-1.5 px-3 py-1.5 text-slate-400 hover:text-red-400 rounded-lg font-bold text-[8px] uppercase tracking-wider transition-all">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span>Reprovados</span>
+                    </button>
+
+                    <!-- Enroll Students -->
+                    <button onclick="document.getElementById('modalAlunos').classList.add('flex'); document.getElementById('modalAlunos').classList.remove('hidden');" 
+                            class="flex items-center gap-1.5 px-3 py-1.5 text-slate-400 hover:text-white rounded-lg font-bold text-[8px] uppercase tracking-wider transition-all">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                        <span>Matricular</span>
+                    </button>
+
+                    <!-- Export Data -->
+                    <button onclick="window.print()" class="flex items-center gap-1.5 px-3 py-1.5 text-slate-400 hover:text-indigo-400 rounded-lg font-bold text-[8px] uppercase tracking-wider transition-all">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Exportar</span>
+                    </button>
+                </div>
+
+                <!-- Encerrar Action -->
+                <form action="{% url 'encerrar_turma' turma.id %}" method="post" onsubmit="return confirm('ATENÇÃO: Deseja realmente encerrar esta turma?');">
+                    {% csrf_token %}
+                    <button type="submit" class="flex items-center gap-1.5 px-3 py-2 bg-red-600/10 border border-red-500/20 text-red-500 hover:bg-red-600 hover:text-white rounded-xl font-bold text-[8px] uppercase tracking-wider transition-all shadow-sm">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <span>Encerrar</span>
+                    </button>
+                </form>
+            {% else %}
+                <span class="flex items-center gap-2 px-4 py-2 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-xl font-bold text-[8px] uppercase tracking-widest italic">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    Histórico Consolidado (Modo Leitura)
+                </span>
+            {% endif %}
         </div>
+        <div class="header-accent"></div>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Coluna da Esquerda: Gráfico e Resumo -->
         <div class="lg:col-span-1 space-y-8">
-            <div class="bg-slate-900/40 rounded-2xl p-8 border border-white/5 shadow-2xl">
+            <div class="glass-surface rounded-2xl p-8">
                 <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-2 text-center">Frequência da Turma</h3>
                 <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-8 text-center mono">{{ chart_data.legenda }}</p>
                 <div class="relative h-64">
@@ -46,48 +85,45 @@
             </div>
         </div>
 
-        <!-- Coluna da Direita: Lista de Chamada -->
         <div class="lg:col-span-2">
-            <div class="bg-slate-900/40 rounded-2xl overflow-hidden border border-white/5 shadow-2xl">
-                <div class="p-6 border-b border-white/5 flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-widest">Lista de Chamada</h3>
+            <div class="glass-surface rounded-2xl overflow-hidden">
+                <div class="p-6 border-b border-white/5 flex justify-between items-center bg-slate-950/20">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Lista de Chamada</h3>
+                        <!-- Search Trigger -->
+                        <button onclick="toggleSearch()" class="p-2 text-slate-500 hover:text-indigo-400 transition-all" title="Pesquisar Estudante">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Hidden Search Input -->
+                    <div id="searchContainer" class="hidden flex-1 max-w-md mx-6">
+                        <input type="text" id="studentSearch" onkeyup="filterStudents()" 
+                               placeholder="Filtrar por nome ou matrícula..." 
+                               class="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white focus:border-indigo-500 outline-none mono">
+                    </div>
+
                     <span class="text-[10px] font-bold text-slate-500 uppercase mono">{{ lista_presenca|length }} ALUNOS</span>
                 </div>
                 <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-950/90 border-b border-white/5 sticky top-0 z-20 backdrop-blur-md">
                             <tr>
-                                <th class="p-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 sticky left-0 bg-slate-950/95 z-30">Aluno</th>
-                                <th class="p-4 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Faltas (h/a)</th>
-                                {% for coluna in colunas_datas %}
-                                    <th class="p-4 text-center text-[9px] font-bold uppercase tracking-tighter text-slate-500 border-l border-white/5 min-w-[60px]">
-                                        {{ coluna.data_formatada }}
-                                    </th>
-                                {% endfor %}
+                                <th class="p-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Estudante</th>
+                                <th class="p-6 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500 border-l border-white/5">Faltas Acumuladas</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5">
                             {% for item in lista_presenca %}
-                            <tr class="hover:bg-indigo-500/5 transition-all">
-                                <td class="p-4 sticky left-0 bg-slate-900/95 backdrop-blur-md border-r border-white/5 z-10 whitespace-nowrap">
+                            <tr class="hover:bg-indigo-500/5 transition-all group">
+                                <td class="p-6">
                                     <div class="text-xs font-bold text-white uppercase">{{ item.nome }}</div>
-                                    <div class="text-[8px] text-slate-600 font-bold mt-1 tracking-tighter">MAT: {{ item.matricula }}</div>
+                                    <div class="text-[8px] text-slate-600 font-bold mt-1 tracking-tighter mono">MATRÍCULA: {{ item.matricula }}</div>
                                 </td>
-                                <td class="p-4 text-center">
-                                    <span class="px-2 py-1 rounded bg-red-500/10 text-red-400 text-[10px] font-black mono">{{ item.total_faltas }}</span>
+                                <td class="p-6 text-center border-l border-white/5">
+                                    <span class="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 text-[10px] font-black mono">{{ item.total_faltas }}H</span>
                                 </td>
-                                {% for presenca in item.grade_presenca %}
-                                    <td class="p-4 text-center border-l border-white/5">
-                                        {% if presenca.presente %}
-                                            <span class="text-emerald-500 font-black text-[10px]">P</span>
-                                        {% else %}
-                                            <span class="text-slate-700 font-black text-[10px]">F</span>
-                                        {% endif %}
-                                    </td>
-                                {% endfor %}
                             </tr>
-                            {% empty %}
-                            <tr><td colspan="100%" class="p-20 text-center uppercase mono text-slate-600 text-[10px] tracking-widest">Nenhum aluno matriculado</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -97,38 +133,137 @@
     </div>
 </div>
 
-<!-- Modal Cadastrar Alunos -->
-<div id="modalAlunos" class="fixed inset-0 z-[100] hidden items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm">
-    <div class="max-w-lg w-full bg-slate-900 rounded-3xl p-8 border border-white/10 shadow-2xl">
-        <h3 class="text-xl font-bold text-white mb-2 italic">Matricular Alunos</h3>
-        <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-6">Insira os e-mails dos alunos separados por vírgula ou espaço</p>
-        
-        <form method="post">
+<!-- MODAL MATRÍCULA -->
+<div id="modalAlunos" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] items-center justify-center p-6">
+    <div class="bg-slate-900 border border-white/10 w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden">
+        <form method="POST" action="{% url 'gerenciar_alunos_disciplina' turma.id %}">
             {% csrf_token %}
-            <textarea name="email_list" rows="6" 
-                      class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 text-sm text-slate-300 focus:border-indigo-500 outline-none transition-all mono"
-                      placeholder="aluno1@exemplo.com, aluno2@exemplo.com..."></textarea>
-            
-            <div class="flex gap-3 mt-8">
-                <button type="button" onclick="document.getElementById('modalAlunos').classList.add('hidden');"
-                        class="flex-1 py-4 bg-slate-800 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-all">
-                    Cancelar
-                </button>
-                <button type="submit" name="email_list_submit"
-                        class="flex-1 py-4 bg-indigo-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-indigo-500 transition-all">
-                    Confirmar Matrícula
-                </button>
+            <header class="p-8 border-b border-white/5 bg-slate-950/50 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-white italic uppercase tracking-tight">Provisionar Estudantes</h2>
+                <button type="button" onclick="document.getElementById('modalAlunos').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors">✕</button>
+            </header>
+            <div class="p-8 space-y-6">
+                <p class="text-xs text-slate-400 leading-relaxed">Insira os e-mails institucionais dos alunos que deseja vincular a esta turma. Separe por vírgula ou espaço.</p>
+                <textarea name="email_list" rows="6" class="w-full bg-slate-950 border border-white/10 rounded-2xl p-6 text-sm text-white focus:border-indigo-500 outline-none mono transition-all" placeholder="exemplo1@ufvjm.edu.br, exemplo2@ufvjm.edu.br"></textarea>
+            </div>
+            <div class="p-8 bg-slate-950/30 border-t border-white/5">
+                <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-900/40">Efetivar Matrículas</button>
             </div>
         </form>
     </div>
 </div>
 
+<!-- MODAL REPROVADOS -->
+<div id="modalReprovados" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[110] items-center justify-center p-4 md:p-6">
+    <div class="bg-slate-900 border border-white/5 w-full max-w-4xl rounded-[2.5rem] shadow-[0_0_100px_rgba(239,68,68,0.1)] overflow-hidden relative">
+        <header class="p-8 border-b border-white/5 bg-slate-950/50 flex justify-between items-center relative">
+            <div class="flex items-center gap-5">
+                <div class="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-white italic uppercase tracking-tight">Alunos <span class="text-red-500">Reprovados</span></h2>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Limite regulamentar de faltas (25%) excedido</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('modalReprovados').classList.add('hidden')" 
+                    class="w-10 h-10 bg-white/5 hover:bg-red-500/20 rounded-xl flex items-center justify-center text-slate-500 hover:text-red-500 transition-all">✕</button>
+            <div class="absolute bottom-0 left-0 w-40 h-[2px] bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]"></div>
+        </header>
+        
+        <div class="p-0 max-h-[60vh] overflow-y-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-950/80 border-b border-white/5 sticky top-0 z-10 backdrop-blur-md">
+                    <tr>
+                        <th class="p-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Estudante</th>
+                        <th class="p-6 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Faltas Acumuladas</th>
+                        <th class="p-6 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Limite CH</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for item in lista_presenca %}
+                        {% if item.total_faltas > limite_faltas %}
+                        <tr class="hover:bg-red-500/[0.02] transition-all group">
+                            <td class="p-6">
+                                <p class="text-xs font-bold text-white group-hover:text-red-400 transition-colors uppercase">{{ item.nome }}</p>
+                                <p class="text-[8px] text-slate-600 font-bold mt-1 mono uppercase">Matrícula: {{ item.matricula }}</p>
+                            </td>
+                            <td class="p-6 text-center">
+                                <span class="px-3 py-1 bg-red-500/10 text-red-500 rounded-lg text-xs font-black mono">{{ item.total_faltas }}H</span>
+                            </td>
+                            <td class="p-6 text-center">
+                                <span class="text-[10px] font-bold text-slate-600 mono">{{ limite_faltas|floatformat:0 }}H (25%)</span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Empty State within Modal -->
+            <div id="emptyReprovados" class="hidden py-20 text-center">
+                <div class="w-16 h-16 bg-slate-800/50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-white/5">
+                    <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p class="text-[10px] text-slate-600 font-bold uppercase tracking-widest italic">Nenhum aluno atingiu o limite de faltas</p>
+            </div>
+        </div>
+        
+        <footer class="p-8 bg-slate-950/30 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest italic">Dados consolidados via Sisfre Engine</p>
+            <button onclick="window.print()" class="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white uppercase tracking-widest transition-all">Emitir Relatório de Infrequência</button>
+        </footer>
+    </div>
+</div>
+
+<script>
+    // Check for empty reprovados list in modal
+    document.addEventListener('DOMContentLoaded', () => {
+        const rows = document.querySelectorAll('#modalReprovados tbody tr');
+        if (rows.length === 0) {
+            document.getElementById('emptyReprovados').classList.remove('hidden');
+            document.querySelector('#modalReprovados table').classList.add('hidden');
+        }
+    });
+</script>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {{ chart_data|json_script:"chart-data" }}
 <script>
+    // Search Functionality
+    function toggleSearch() {
+        const container = document.getElementById('searchContainer');
+        const input = document.getElementById('studentSearch');
+        container.classList.toggle('hidden');
+        if (!container.classList.contains('hidden')) {
+            input.focus();
+        } else {
+            input.value = '';
+            filterStudents();
+        }
+    }
+
+    function filterStudents() {
+        const input = document.getElementById('studentSearch');
+        const filter = input.value.toUpperCase();
+        const tbody = document.querySelector('tbody');
+        const tr = tbody.getElementsByTagName('tr');
+
+        for (let i = 0; i < tr.length; i++) {
+            const nameCell = tr[i].getElementsByTagName('td')[0];
+            if (nameCell) {
+                const textValue = nameCell.textContent || nameCell.innerText;
+                if (textValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
     const data = JSON.parse(document.getElementById('chart-data').textContent);
 
     const ctx = document.getElementById('disciplinaChart').getContext('2d');

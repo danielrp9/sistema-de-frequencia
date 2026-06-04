@@ -1,14 +1,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="p-6 md:p-10">
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-        <div>
-            <h1 class="text-4xl font-black text-white tracking-tight uppercase italic">Gestão de <span class="text-indigo-500">Usuários</span></h1>
+<div class="p-6 md:p-12 w-full">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'dashboard' %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">Gestão de <span class="text-indigo-500">Usuários</span></h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1">Controle de acesso e provisionamento</p>
+            </div>
         </div>
-        <a href="{% url 'criar_usuario_manual' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-900/20 hover:bg-indigo-500 transition-all">
-            + Cadastrar Usuário
-        </a>
+        
+        <div class="flex items-center gap-4">
+            <a href="{% url 'criar_usuario_manual' %}" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/40">
+                + Provisionar Usuário
+            </a>
+        </div>
+        <div class="header-accent"></div>
     </header>
 
     <!-- Stats Row -->
@@ -30,11 +40,41 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-slate-900/20 rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
-        <div class="p-6 border-b border-white/5 flex gap-4 bg-slate-900/40">
-            <a href="?role=all" class="text-[10px] font-bold text-slate-400 hover:text-white uppercase tracking-widest">Todos</a>
-            <a href="?role=professor" class="text-[10px] font-bold text-slate-400 hover:text-indigo-400 uppercase tracking-widest border-l border-white/10 pl-4">Professores</a>
-            <a href="?role=aluno" class="text-[10px] font-bold text-slate-400 hover:text-emerald-400 uppercase tracking-widest border-l border-white/10 pl-4">Alunos</a>
+    <div class="glass-surface rounded-[2.5rem] overflow-hidden">
+
+        <div class="p-4 md:p-6 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-900/40">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="flex items-center p-1 bg-slate-950/50 rounded-xl border border-white/5">
+                    <a href="?role=all" class="px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all {% if current_role == 'all' %}bg-white/10 text-white shadow-lg{% else %}text-slate-500 hover:text-slate-300{% endif %}">
+                        Todos
+                    </a>
+                    <a href="?role=professor" class="px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all {% if current_role == 'professor' %}bg-indigo-500/20 text-indigo-400 shadow-lg shadow-indigo-900/20{% else %}text-slate-500 hover:text-indigo-400/60{% endif %}">
+                        Professores
+                    </a>
+                    <a href="?role=aluno" class="px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all {% if current_role == 'aluno' %}bg-emerald-500/20 text-emerald-400 shadow-lg shadow-emerald-900/20{% else %}text-slate-500 hover:text-emerald-400/60{% endif %}">
+                        Alunos
+                    </a>
+                </div>
+                
+                <!-- Search Trigger -->
+                <button onclick="toggleSearch()" class="p-2 text-slate-500 hover:text-white transition-all bg-slate-950/30 rounded-lg border border-white/5" title="Procurar Usuário">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </button>
+            </div>
+
+            <!-- Hidden Search Input with Scope Indicator -->
+            <div id="searchContainer" class="hidden flex-1 max-w-xl md:mx-8 relative w-full">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                    <span class="text-[8px] font-black px-1.5 py-0.5 rounded border {% if current_role == 'professor' %}bg-indigo-500/20 border-indigo-500/30 text-indigo-400{% elif current_role == 'aluno' %}bg-emerald-500/20 border-emerald-500/30 text-emerald-400{% else %}bg-white/5 border-white/10 text-slate-500{% endif %} uppercase">
+                        {% if current_role == 'professor' %}DOCENTES{% elif current_role == 'aluno' %}DISCENTES{% else %}GLOBAL{% endif %}
+                    </span>
+                </div>
+                <input type="text" id="userSearch" onkeyup="filterUsers()" 
+                       placeholder="Filtrar nesta visualização..." 
+                       class="w-full bg-slate-950 border border-white/10 rounded-xl pl-20 pr-5 py-2.5 text-[10px] text-white focus:border-indigo-500 outline-none mono transition-all">
+            </div>
+
+            <span class="hidden lg:block text-[10px] font-bold text-slate-600 uppercase mono whitespace-nowrap">{{ usuarios|length }} REGISTROS</span>
         </div>
         
         <div class="overflow-x-auto">
@@ -51,8 +91,8 @@
                     {% for user in usuarios %}
                     <tr class="hover:bg-white/[0.02] transition-all">
                         <td class="p-6">
-                            <span class="text-xs font-bold text-white uppercase">{{ user.username }}</span>
-                            <p class="text-[9px] text-slate-600 mt-1">SESS_ID: {{ user.id|stringformat:"04d" }}</p>
+                            <span class="text-xs font-bold text-white uppercase">{{ user.first_name|default:user.username }}</span>
+                            <p class="text-[9px] text-slate-600 mt-1">ID_REF: {{ user.id|stringformat:"04d" }}</p>
                         </td>
                         <td class="p-6">
                             {% if user.is_superuser %}
@@ -65,7 +105,20 @@
                         </td>
                         <td class="p-6 text-xs text-slate-400">{{ user.email }}</td>
                         <td class="p-6 text-right">
-                            <span class="w-2 h-2 inline-block rounded-full {% if user.is_active %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>
+                            <div class="flex items-center justify-end gap-3">
+                                {% if user.is_professor and not user.is_approved %}
+                                    <form method="post" action="{% url 'aprovar_usuario' user.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-[9px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-1 rounded hover:bg-amber-500 hover:text-white transition-all">
+                                            APROVAR
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <a href="{% url 'detalhes_usuario' user.id %}" class="px-4 py-2 bg-white/5 text-slate-400 border border-white/10 rounded-xl text-[9px] font-bold hover:bg-indigo-600 hover:text-white transition-all">
+                                    DETALHES
+                                </a>
+                                <span class="w-2 h-2 inline-block rounded-full {% if user.is_active and user.is_approved %}bg-emerald-500{% elif not user.is_approved %}bg-amber-500{% else %}bg-red-500{% endif %}"></span>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -74,4 +127,43 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleSearch() {
+        const container = document.getElementById('searchContainer');
+        const input = document.getElementById('userSearch');
+        container.classList.toggle('hidden');
+        if (!container.classList.contains('hidden')) {
+            input.focus();
+        } else {
+            input.value = '';
+            filterUsers();
+        }
+    }
+
+    function filterUsers() {
+        const input = document.getElementById('userSearch');
+        const filter = input.value.toUpperCase();
+        const tbody = document.querySelector('tbody');
+        const tr = tbody.getElementsByTagName('tr');
+
+        for (let i = 0; i < tr.length; i++) {
+            const nameCell = tr[i].getElementsByTagName('td')[0];
+            const emailCell = tr[i].getElementsByTagName('td')[2];
+            
+            if (nameCell || emailCell) {
+                const nameValue = nameCell ? (nameCell.textContent || nameCell.innerText) : "";
+                const emailValue = emailCell ? (emailCell.textContent || emailCell.innerText) : "";
+                
+                if (nameValue.toUpperCase().indexOf(filter) > -1 || emailValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
 {% endblock %}

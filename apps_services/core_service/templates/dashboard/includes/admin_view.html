@@ -1,0 +1,37 @@
+<!-- VISÃO DO ADMINISTRADOR (Gestão Base) -->
+<section class="space-y-10">
+    <div class="flex items-center justify-between mb-2">
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] px-2 italic">Controle Institucional</h2>
+        <span class="h-[1px] flex-1 bg-white/5 mx-4" aria-hidden="true"></span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Departamentos -->
+        <a href="{% url 'gestao_departamentos' %}" class="glass-surface glass-surface-hover p-6 rounded-3xl transition-all group">
+            <p class="text-[9px] font-bold text-indigo-500 uppercase mb-4 tracking-[0.2em]">Estrutura</p>
+            <h3 class="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase italic">Departamentos</h3>
+            <p class="text-[10px] text-slate-500 mt-2 font-medium">Gerenciar Centros e Cursos</p>
+        </a>
+
+        <!-- Usuários -->
+        <a href="{% url 'gestao_usuarios' %}" class="glass-surface glass-surface-hover p-6 rounded-3xl transition-all group">
+            <p class="text-[9px] font-bold text-indigo-500 uppercase mb-4 tracking-[0.2em]">Pessoas</p>
+            <h3 class="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase italic">Usuários</h3>
+            <p class="text-[10px] text-slate-500 mt-2 font-medium">Docentes e Estudantes</p>
+        </a>
+
+        <!-- Salas -->
+        <a href="{% url 'gestao_salas' %}" class="glass-surface glass-surface-hover p-6 rounded-3xl transition-all group">
+            <p class="text-[9px] font-bold text-indigo-500 uppercase mb-4 tracking-[0.2em]">Espaço Físico</p>
+            <h3 class="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase italic">Salas & Locais</h3>
+            <p class="text-[10px] text-slate-500 mt-2 font-medium">Geolocalização das Aulas</p>
+        </a>
+
+        <!-- Logs do Sistema -->
+        <a href="{% url 'historico_sistema' %}" class="glass-surface glass-surface-hover p-6 rounded-3xl transition-all group">
+            <p class="text-[9px] font-bold text-indigo-500 uppercase mb-4 tracking-[0.2em]">Segurança</p>
+            <h3 class="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase italic">Logs</h3>
+            <p class="text-[10px] text-slate-500 mt-2 font-medium">Audit Log de Ações do Sistema</p>
+        </a>
+    </div>
+</section>

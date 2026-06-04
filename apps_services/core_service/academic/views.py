@@ -27,25 +27,22 @@ def gestao_departamentos(request):
 @login_required
 @user_passes_test(is_admin)
 def detalhes_departamento(request, depto_id):
-    """Gerencia Cursos e visualiza todos os Professores cadastrados no sistema."""
+    """Gerencia Cursos de um departamento."""
     depto = get_object_or_404(Department, id=depto_id)
     
     if request.method == "POST" and 'btn_curso' in request.POST:
         Course.objects.create(name=request.POST.get('name'), department=depto)
         return redirect('detalhes_departamento', depto_id=depto.id)
 
-    todos_professores = User.objects.filter(is_professor=True).order_by('first_name')
-
     return render(request, 'academic/detalhes_departamento.html', {
         'depto': depto,
-        'cursos': depto.courses.all(),
-        'todos_professores': todos_professores
+        'cursos': depto.courses.all()
     })
 
 @login_required
 @user_passes_test(is_admin)
 def detalhes_curso(request, curso_id):
-    """Interface para o Administrador gerenciar as Disciplinas Base de um Curso."""
+    """Interface para o Administrador gerenciar as Disciplinas Base de um Curso com busca."""
     curso = get_object_or_404(Course, id=curso_id)
     
     if request.method == "POST" and 'btn_disciplina' in request.POST:
@@ -57,10 +54,48 @@ def detalhes_curso(request, curso_id):
         )
         return redirect('detalhes_curso', curso_id=curso.id)
 
+    search_query = request.GET.get('q', '')
     disciplinas = curso.disciplinas.all().order_by('nome')
+    
+    if search_query:
+        disciplinas = disciplinas.filter(
+            models.Q(nome__icontains=search_query) | 
+            models.Q(codigo__icontains=search_query)
+        )
+
     return render(request, 'academic/detalhes_curso.html', {
         'curso': curso,
-        'disciplinas': disciplinas
+        'disciplinas': disciplinas,
+        'search_query': search_query
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def detalhes_disciplina(request, disciplina_id):
+    """Interface para gerenciar detalhes da disciplina e professores responsáveis."""
+    disciplina = get_object_or_404(Disciplina, id=disciplina_id)
+    
+    if request.method == "POST":
+        if 'add_professor' in request.POST:
+            prof_id = request.POST.get('professor_id')
+            prof = get_object_or_404(Professor, id=prof_id)
+            disciplina.professores_responsaveis.add(prof)
+            messages.success(request, f"Prof. {prof.nome} adicionado à disciplina.")
+        elif 'remove_professor' in request.POST:
+            prof_id = request.POST.get('professor_id')
+            prof = get_object_or_404(Professor, id=prof_id)
+            disciplina.professores_responsaveis.remove(prof)
+            messages.success(request, f"Prof. {prof.nome} removido da disciplina.")
+        return redirect('detalhes_disciplina', disciplina_id=disciplina.id)
+
+    professores_atribuidos = disciplina.professores_responsaveis.all()
+    # Professores que ainda não foram atribuídos a esta disciplina
+    professores_disponiveis = Professor.objects.exclude(id__in=professores_atribuidos.values_list('id', flat=True))
+
+    return render(request, 'academic/detalhes_disciplina.html', {
+        'disciplina': disciplina,
+        'professores_atribuidos': professores_atribuidos,
+        'professores_disponiveis': professores_disponiveis
     })
 
 @login_required
@@ -69,26 +104,104 @@ def abrir_turma(request):
     if not getattr(request.user, 'is_professor', False):
         return redirect('dashboard')
 
+    professor_perfil = get_object_or_404(Professor, user=request.user)
+
     if request.method == "POST":
         disciplina_id = request.POST.get('disciplina')
         semestre = request.POST.get('semestre')
-        professor_perfil = get_object_or_404(Professor, user=request.user)
+        
+        # Garante que o professor é responsável por esta disciplina base
+        disciplina = get_object_or_404(Disciplina, id=disciplina_id, professores_responsaveis=professor_perfil)
         
         Turma.objects.create(
-            disciplina_id=disciplina_id,
+            disciplina=disciplina,
             professor=professor_perfil,
             semestre=semestre,
             ativa=True
         )
+        messages.success(request, f"Turma de {disciplina.nome} iniciada com sucesso.")
         return redirect('dashboard')
 
+    # Só exibe disciplinas onde o professor é responsável
+    disciplinas_autorizadas = Disciplina.objects.filter(professores_responsaveis=professor_perfil).order_by('nome')
+
     context = {
-        'disciplinas_disponiveis': Disciplina.objects.all().order_by('nome'),
+        'disciplinas_disponiveis': disciplinas_autorizadas,
     }
     return render(request, 'academic/abrir_turma.html', context)
 
+@login_required
+def encerrar_turma(request, turma_id):
+    """Move a turma para o histórico (ativa=False), preservando os dados para auditoria."""
+    turma = get_object_or_404(Turma, id=turma_id)
+    
+    if not request.user.is_superuser and turma.professor.user != request.user:
+        return redirect('dashboard')
+        
+    turma.ativa = False
+    turma.save()
+    messages.success(request, f"CONSOLIDATED: A turma {turma.disciplina.nome} foi encerrada e movida para o histórico.")
+    return redirect('dashboard')
+
 from .serializers import AlunoRelatorioSerializer
 from classes.serializers import AulaGradeSerializer
+
+from .services import AcademicService
+
+@login_required
+def folha_frequencia_turma(request, turma_id):
+    """Exibe uma folha de frequência limpa e expansiva para a turma."""
+    turma = get_object_or_404(Turma, id=turma_id)
+    
+    if not request.user.is_superuser and turma.professor.user != request.user:
+        return redirect('dashboard')
+    
+    aulas = Aula.objects.filter(turma=turma).order_by('data', 'horario_inicio')
+    colunas_datas = AulaGradeSerializer(aulas, many=True).data
+    alunos_qs = turma.alunos.all().order_by('nome')
+    
+    serializer = AlunoRelatorioSerializer(
+        alunos_qs,
+        many=True,
+        context={'turma': turma},
+    )
+    
+    return render(request, 'academic/folha_frequencia.html', {
+        'turma': turma,
+        'disciplina': turma.disciplina,
+        'colunas_datas': colunas_datas,
+        'lista_presenca': serializer.data,
+    })
+
+@login_required
+def alunos_reprovados_turma(request, turma_id):
+    """Exibe uma lista isolada e limpa de alunos reprovados por falta em uma turma."""
+    turma = get_object_or_404(Turma, id=turma_id)
+    
+    if not request.user.is_superuser and turma.professor.user != request.user:
+        return redirect('dashboard')
+    
+    alunos_reprovados = AcademicService.get_failed_students(turma)
+    limite = turma.disciplina.carga_horaria_total * 0.25
+    
+    return render(request, 'academic/lista_reprovados_isolada.html', {
+        'turma': turma,
+        'alunos_reprovados': alunos_reprovados,
+        'limite_faltas': limite
+    })
+
+@login_required
+def lista_turmas_gestao(request):
+    """Lista as turmas do professor especificamente para gestão."""
+    if not getattr(request.user, 'is_professor', False):
+        return redirect('dashboard')
+    
+    professor_perfil = get_object_or_404(Professor, user=request.user)
+    turmas = Turma.objects.filter(professor=professor_perfil, ativa=True).select_related('disciplina')
+    
+    return render(request, 'academic/lista_turmas_gestao.html', {
+        'turmas': turmas
+    })
 
 @login_required
 def gerenciar_alunos_disciplina(request, turma_id):
@@ -100,15 +213,8 @@ def gerenciar_alunos_disciplina(request, turma_id):
         
     if request.method == "POST":
         if 'email_list' in request.POST:
-            raw_emails = request.POST.get('email_list')
-            emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', raw_emails)
-            emails = [e.lower() for e in emails]
-            
-            alunos_encontrados = Aluno.objects.filter(email__in=emails)
-            for aluno in alunos_encontrados:
-                turma.alunos.add(aluno)
-            
-            messages.success(request, f"{alunos_encontrados.count()} alunos matriculados com sucesso.")
+            count = AcademicService.provision_students_by_email(request.POST.get('email_list'), turma)
+            messages.success(request, f"{count} alunos matriculados com sucesso.")
             return redirect('gerenciar_alunos_disciplina', turma_id=turma.id)
 
     # Dados para o Relatório e Gráfico
@@ -116,13 +222,22 @@ def gerenciar_alunos_disciplina(request, turma_id):
     colunas_datas = AulaGradeSerializer(aulas, many=True).data
     
     alunos_qs = turma.alunos.all().order_by('nome')
+    
+    # Serialização completa para filtro posterior se necessário
     serializer = AlunoRelatorioSerializer(
         alunos_qs,
         many=True,
         context={'turma': turma},
     )
+    
+    lista_presenca = serializer.data
+    filtro_reprovados = request.GET.get('filter') == 'reprovados'
+    
+    if filtro_reprovados:
+        limite = turma.disciplina.carga_horaria_total * 0.25
+        lista_presenca = [aluno for aluno in lista_presenca if aluno['total_faltas'] > limite]
 
-    # Dados do Gráfico (Focado na última atividade: aula ativa ou última realizada)
+    # Dados do Gráfico ... (rest of the code same)
     from presence_service.models import Presenca
     ultima_aula = aulas.last()
     alunos_count = alunos_qs.count()
@@ -144,13 +259,17 @@ def gerenciar_alunos_disciplina(request, turma_id):
         'legenda': legenda_grafico
     }
 
+    limite_faltas = turma.disciplina.carga_horaria_total * 0.25
+
     context = {
         'turma': turma,
         'disciplina': turma.disciplina,
         'alunos_matriculados': alunos_qs,
         'colunas_datas': colunas_datas,
-        'lista_presenca': serializer.data,
-        'chart_data': chart_data
+        'lista_presenca': lista_presenca,
+        'chart_data': chart_data,
+        'filtro_reprovados': filtro_reprovados,
+        'limite_faltas': limite_faltas
     }
     
     return render(request, 'academic/gestao_turma.html', context)

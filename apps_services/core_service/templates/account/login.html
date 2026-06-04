@@ -3,91 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acesso | SisPres UFVJM</title>
+    <title>Acesso | Sistema de Frequência</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #020617;
-            background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(79, 70, 229, 0.08) 0px, transparent 50%);
             min-height: 100vh;
+            color: #f8fafc;
         }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .glass-auth {
+        .glass-card {
             background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
         input {
-            background: rgba(7, 10, 22, 0.5) !important;
+            background: rgba(7, 10, 22, 0.4) !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             color: white !important;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         input:focus {
             border-color: #6366f1 !important;
+            background: rgba(7, 10, 22, 0.6) !important;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+        input::placeholder {
+            color: #475569;
         }
     </style>
 </head>
 <body class="flex items-center justify-center p-6">
 
-    <div class="glass-auth w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
+    <div class="glass-card w-full max-w-md rounded-[2.5rem] p-10 relative overflow-hidden">
+        <!-- Subtle gradient line at the top -->
+        <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent"></div>
         
         <header class="text-center mb-10">
-            <div class="inline-flex items-center gap-2 mb-4">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-indigo-900/40">S</div>
-                <h1 class="text-2xl font-black text-white tracking-tighter italic">SISPRES<span class="text-indigo-500">.</span></h1>
-            </div>
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">Autenticação Institucional</p>
+            <h1 class="text-2xl font-black text-white tracking-tight mb-2">
+                Sistema de Frequência<span class="text-indigo-500">.</span>
+            </h1>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-[0.2em]">Acesse sua conta</p>
         </header>
 
         <form method="POST" action="{% url 'account_login' %}" class="space-y-6">
             {% csrf_token %}
             
             {% if form.errors %}
-                <div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] mono font-bold uppercase tracking-tight">
-                    ERRO_AUTH: Credenciais inválidas ou inexistentes.
+                <div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium text-center">
+                    Credenciais inválidas. Por favor, tente novamente.
                 </div>
             {% endif %}
 
             <div class="space-y-2">
-                <label for="id_login" class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">ID Usuário / E-mail</label>
+                <label for="id_login" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">E-mail ou ID</label>
                 <input type="email" name="login" id="id_login" required 
-                    placeholder="user@ufvjm.edu.br"
-                    class="w-full px-5 py-4 rounded-2xl transition-all">
+                    placeholder="usuario@ufvjm.edu.br"
+                    class="w-full px-5 py-4 rounded-2xl">
             </div>
 
             <div class="space-y-2">
                 <div class="flex justify-between items-center ml-1">
-                    <label for="id_password" class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Senha de Acesso</label>
-                    <a href="{% url 'account_reset_password' %}" class="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-widest">Esqueci</a>
+                    <label for="id_password" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest">Senha</label>
+                    <a href="{% url 'account_reset_password' %}" class="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-widest">Esqueceu?</a>
                 </div>
                 <input type="password" name="password" id="id_password" required 
                     placeholder="••••••••"
-                    class="w-full px-5 py-4 rounded-2xl transition-all">
+                    class="w-full px-5 py-4 rounded-2xl">
             </div>
 
             <div class="flex items-center ml-1">
                 <input type="checkbox" name="remember" id="id_remember" 
-                    class="h-4 w-4 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500">
-                <label for="id_remember" class="ml-3 block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Manter Conectado</label>
+                    class="h-4 w-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900">
+                <label for="id_remember" class="ml-3 block text-[11px] font-bold text-slate-400 uppercase tracking-widest">Manter conectado</label>
             </div>
 
             <button type="submit" 
-                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 px-4 rounded-2xl shadow-xl shadow-indigo-900/30 transition-all active:scale-[0.98] uppercase text-xs tracking-[0.2em]">
-                Iniciar Sessão
+                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-4 px-4 rounded-2xl shadow-xl shadow-indigo-900/40 transition-all active:scale-[0.98] uppercase text-xs tracking-widest">
+                Entrar no Sistema
             </button>
         </form>
 
         <footer class="mt-12 text-center">
-            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-widest italic">UFVJM // SISTEMAS DISTRIBUÍDOS</p>
-            <div class="mt-4">
-                <a href="{{ signup_url }}" class="text-[11px] font-bold text-slate-400 hover:text-white transition-colors">Cadastro</a>
+            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-[0.3em]">UFVJM &bull; Sistemas Distribuídos</p>
+            <div class="mt-6">
+                <a href="{{ signup_url }}" class="text-xs font-bold text-slate-400 hover:text-white transition-colors uppercase tracking-widest">Cadastrar-se</a>
             </div>
         </footer>
     </div>

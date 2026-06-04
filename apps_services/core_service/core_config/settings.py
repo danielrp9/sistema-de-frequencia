@@ -58,10 +58,11 @@ AUTHENTICATION_BACKENDS = [
 AUTH_USER_MODEL = 'users.User' 
 
 # CONFIGURAÇÃO ALLAUTH ATUALIZADA (Django 6+)
-ACCOUNT_LOGIN_METHODS = {'username', 'email'}
-ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 
 LOGIN_REDIRECT_URL = '/dashboard/' 
 LOGOUT_REDIRECT_URL = '/accounts/login/'
@@ -99,12 +100,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core_config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# DATABASE CONFIGURATION
+# Se houver DB_HOST no .env, usa Postgres (Produção/Docker). Caso contrário, usa SQLite (Local).
+DB_HOST = os.getenv('DB_HOST')
+
+if DB_HOST:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'frequencia_db'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
+            'HOST': DB_HOST,
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -119,6 +136,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 IS_TESTING = 'test' in sys.argv

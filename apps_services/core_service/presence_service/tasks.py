@@ -59,3 +59,27 @@ def processar_presenca_task(self, aluno_id, aula_id, ip, lat, lon):
         'aula_id': aula.id,
         'aluno_id': aluno.id,
     }
+
+
+@shared_task
+def check_student_risk_task(aluno_id, turma_id):
+    """
+    Tarefa assíncrona que verifica se um aluno específico atingiu 
+    o limite de faltas em uma turma e gera notificações.
+    """
+    from users.models import Aluno
+    from academic.models import Turma
+    from users.services import NotificationService
+    
+    try:
+        aluno = Aluno.objects.get(id=aluno_id)
+        turma = Turma.objects.get(id=turma_id)
+        
+        # Chama o serviço de notificação para processar esse aluno específico
+        NotificationService.sync_student_notifications(aluno.user)
+        
+        # Também podemos avisar o professor se o aluno reprovou
+        NotificationService.sync_professor_notifications(turma.professor.user)
+        
+    except Exception as e:
+        logger.error(f"Erro ao processar check de risco: {e}")

@@ -35,6 +35,7 @@ class Disciplina(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='disciplinas')
     # Carga horária total definida pelo Super Admin
     carga_horaria_total = models.PositiveIntegerField(default=60)
+    professores_responsaveis = models.ManyToManyField(Professor, related_name='disciplinas_sob_responsabilidade', blank=True)
     history = HistoricalRecords()
 
     def __str__(self):

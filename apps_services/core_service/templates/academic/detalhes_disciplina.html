@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'detalhes_curso' disciplina.course.id %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">{{ disciplina.nome }}</h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1 mono">Protocolo_Base: {{ disciplina.codigo }}</p>
+            </div>
+        </div>
+        <div class="header-accent"></div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <section class="lg:col-span-4 space-y-6">
+            <div class="glass-surface p-8 rounded-[2.5rem] space-y-8">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8 border-b border-white/5 pb-4">Dados Estruturais</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Carga Horária Total</p>
+                        <p class="text-2xl font-black text-white mono">{{ disciplina.carga_horaria_total }} Horas</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Unidade Acadêmica</p>
+                        <p class="text-sm font-bold text-slate-300 uppercase italic">{{ disciplina.course.department.name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Curso Vinculado</p>
+                        <p class="text-sm font-bold text-slate-300 uppercase italic">{{ disciplina.course.name }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-8 space-y-6">
+            <div class="glass-surface p-8 rounded-[2.5rem] space-y-8">
+                <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Docentes Responsáveis</h3>
+                    <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold rounded-lg">{{ professores_atribuidos|length }} Atribuídos</span>
+                </div>
+
+                <!-- Lista de Atribuídos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+                    {% for prof in professores_atribuidos %}
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group hover:border-red-500/30 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-600/20 flex items-center justify-center text-indigo-400 font-bold text-xs border border-indigo-500/20">
+                                {{ prof.nome|first|upper }}
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white uppercase">{{ prof.nome }}</p>
+                                <p class="text-[9px] text-slate-500 mono">SIAPE: {{ prof.siape|default:"N/A" }}</p>
+                            </div>
+                        </div>
+                        <form method="post" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                            {% csrf_token %}
+                            <input type="hidden" name="professor_id" value="{{ prof.id }}">
+                            <button type="submit" name="remove_professor" class="p-2 text-slate-600 hover:text-red-500 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full py-10 text-center bg-slate-950/30 rounded-3xl border border-dashed border-white/5">
+                        <p class="text-[10px] text-slate-600 font-bold uppercase tracking-widest">Nenhum docente responsável por esta base</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Adicionar Novo -->
+                <div class="pt-6 border-t border-white/5">
+                    <form method="post" class="flex flex-col md:flex-row gap-4">
+                        {% csrf_token %}
+                        <div class="flex-1">
+                            <select name="professor_id" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-3.5 text-xs text-white focus:border-indigo-500 outline-none appearance-none">
+                                <option value="" disabled selected>Selecionar docente para atribuição...</option>
+                                {% for prof in professores_disponiveis %}
+                                    <option value="{{ prof.id }}">{{ prof.nome }} ({{ prof.siape|default:"Sem SIAPE" }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" name="add_professor" class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/20">
+                            Atribuir Docente
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

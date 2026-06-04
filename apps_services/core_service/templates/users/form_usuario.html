@@ -1,45 +1,129 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="p-6 md:p-12 max-w-2xl mx-auto">
-    <header class="mb-10 text-center">
-        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2">New Identity Node</p>
-        <h1 class="text-3xl font-black text-white tracking-tight uppercase italic">Provisionar <span class="text-indigo-500">Usuário</span></h1>
+<div class="p-6 md:p-12 max-w-7xl mx-auto">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'gestao_usuarios' %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">
+                    {% if edit_mode %}Editar <span class="text-indigo-500">Usuário</span>{% else %}Provisionar <span class="text-indigo-500">Usuário</span>{% endif %}
+                </h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1">
+                    {% if edit_mode %}Atualização de Credenciais e Perfil{% else %}Criação de Nova Identidade no Sistema{% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="header-accent"></div>
     </header>
 
-    <form method="post" class="bg-slate-900/40 p-8 md:p-10 rounded-3xl border border-white/5 shadow-2xl space-y-6">
+    <form method="post" class="glass-surface p-8 md:p-10 rounded-[2.5rem] space-y-6 max-w-3xl mx-auto">
         {% csrf_token %}
         
         <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Username / Login</label>
-            <input type="text" name="username" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 mono">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
+            <input type="text" name="nome_completo" required 
+                   value="{% if edit_mode %}{{ user_to_edit.get_full_name }}{% endif %}"
+                   class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500" placeholder="Nome do usuário">
         </div>
 
         <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail Institucional</label>
-            <input type="email" name="email" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 mono">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail Institucional (Login)</label>
+            <input type="email" name="email" required 
+                   value="{% if edit_mode %}{{ user_to_edit.email }}{% endif %}"
+                   class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500" placeholder="usuario@ufvjm.edu.br">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Senha Inicial</label>
-                <input type="password" name="password" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 mono">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                    {% if edit_mode %}Nova Senha (deixe vazio para manter){% else %}Senha Inicial{% endif %}
+                </label>
+                <input type="password" name="password" {% if not edit_mode %}required{% endif %} class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 mono">
             </div>
             <div class="space-y-2">
                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Papel no Sistema (Role)</label>
-                <select name="role" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 appearance-none mono">
-                    <option value="aluno">DISCENTE (ALUNO)</option>
-                    <option value="professor">DOCENTE (PROFESSOR)</option>
+                <select name="role" id="roleSelect" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 appearance-none mono">
+                    <option value="aluno" {% if edit_mode and user_to_edit.is_aluno %}selected{% endif %}>DISCENTE (ALUNO)</option>
+                    <option value="professor" {% if edit_mode and user_to_edit.is_professor %}selected{% endif %}>DOCENTE (PROFESSOR)</option>
                 </select>
             </div>
         </div>
 
+        <div class="space-y-2">
+            <label id="identificadorLabel" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Matrícula (11 dígitos)</label>
+            <input type="text" name="identificador" required 
+                   value="{{ identificador }}"
+                   class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 mono" placeholder="Digite a identificação">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Telefone de Contato</label>
+                <input type="text" name="telefone" value="{{ perfil.telefone|default:'' }}" 
+                       class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500 mono" placeholder="(00) 00000-0000">
+            </div>
+            <div class="space-y-2" id="divPai">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome do Pai</label>
+                <input type="text" name="nome_pai" value="{{ perfil.nome_pai|default:'' }}" 
+                       class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500" placeholder="Opcional">
+            </div>
+            <div class="space-y-2" id="divMae">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome da Mãe</label>
+                <input type="text" name="nome_mae" value="{{ perfil.nome_mae|default:'' }}" 
+                       class="w-full bg-slate-950 border border-white/10 rounded-xl px-5 py-4 text-sm text-white focus:border-indigo-500" placeholder="Opcional">
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Endereço Residencial</label>
+            <textarea name="endereco" rows="3" 
+                      class="w-full bg-slate-950 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-indigo-500">{{ perfil.endereco|default:'' }}</textarea>
+        </div>
+
+        {% if edit_mode %}
+        <div class="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5">
+            <input type="checkbox" name="is_approved" id="is_approved" 
+                   {% if user_to_edit.is_approved %}checked{% endif %}
+                   class="h-4 w-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500">
+            <label for="is_approved" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Acesso Liberado</label>
+        </div>
+        {% endif %}
+
         <div class="pt-8 border-t border-white/5">
             <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] transition-all">
-                Finalizar Cadastro
+                {% if edit_mode %}Salvar Alterações{% else %}Finalizar Cadastro{% endif %}
             </button>
             <a href="{% url 'gestao_usuarios' %}" class="block text-center mt-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest hover:text-white transition-colors">Cancelar</a>
         </div>
     </form>
 </div>
+
+<script>
+    const roleSelect = document.getElementById('roleSelect');
+    const identificadorLabel = document.getElementById('identificadorLabel');
+    const divPai = document.getElementById('divPai');
+    const divMae = document.getElementById('divMae');
+
+    function updateLabel(val) {
+        if (val === 'professor') {
+            identificadorLabel.textContent = 'SIAPE (7 dígitos)';
+            if(divPai) divPai.classList.add('hidden');
+            if(divMae) divMae.classList.add('hidden');
+        } else {
+            identificadorLabel.textContent = 'Matrícula (11 dígitos)';
+            if(divPai) divPai.classList.remove('hidden');
+            if(divMae) divMae.classList.remove('hidden');
+        }
+    }
+
+    roleSelect.addEventListener('change', function() {
+        updateLabel(this.value);
+    });
+
+    // Init label
+    updateLabel(roleSelect.value);
+</script>
 {% endblock %}

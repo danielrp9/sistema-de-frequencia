@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-12 max-w-5xl mx-auto">
+    <header class="page-header-container flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div class="flex items-center gap-6">
+            <a href="{% url 'gerenciar_alunos_disciplina' turma.id %}" class="btn-back-minimal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+            <div>
+                <h1 class="page-title">Alunos <span class="text-red-500">Reprovados</span></h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 ml-1">Frequência Abaixo de 75% em {{ turma.disciplina.nome }}</p>
+            </div>
+        </div>
+        <div class="header-accent bg-red-500 shadow-red-500/50"></div>
+    </header>
+
+    <div class="bg-slate-900/40 rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-950/80 border-b border-white/5">
+                    <tr>
+                        <th class="p-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Estudante</th>
+                        <th class="p-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Matrícula</th>
+                        <th class="p-6 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Faltas Acumuladas</th>
+                        <th class="p-6 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Limite da CH</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for aluno in alunos_reprovados %}
+                    <tr class="hover:bg-red-500/[0.02] transition-all group">
+                        <td class="p-6">
+                            <span class="text-xs font-bold text-white uppercase group-hover:text-red-400 transition-colors">{{ aluno.nome }}</span>
+                        </td>
+                        <td class="p-6">
+                            <span class="text-[10px] font-bold text-slate-500 mono">{{ aluno.matricula }}</span>
+                        </td>
+                        <td class="p-6 text-center">
+                            <span class="px-3 py-1 bg-red-500/10 text-red-500 rounded-lg text-xs font-black mono">{{ aluno.total_faltas }}H</span>
+                        </td>
+                        <td class="p-6 text-center">
+                            <span class="text-[10px] font-bold text-slate-600 mono">{{ limite_faltas }}H (25%)</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="p-20 text-center uppercase mono text-slate-600 text-[10px] tracking-widest italic">
+                            Nenhum aluno atingiu o limite de reprovação por infrequência nesta turma até o momento.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="mt-12 p-8 bg-red-500/5 rounded-3xl border border-red-500/10 text-center">
+        <p class="text-[10px] text-slate-500 font-medium leading-relaxed">
+            Esta lista é atualizada em tempo real conforme os registros de presença são efetuados. <br>
+            Alunos nesta lista já ultrapassaram o limite regulamentar de 25% de faltas sobre a Carga Horária Total.
+        </p>
+    </footer>
+</div>
+{% endblock %}

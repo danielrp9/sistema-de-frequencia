@@ -1,0 +1,32 @@
+<!-- VISÃO DO ESTUDANTE (Disciplinas) -->
+<section class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest italic">Minhas Disciplinas</h2>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    {% for disciplina in disciplinas_aluno %}
+        <a href="{% url 'detalhes_disciplina_aluno' disciplina.turma_id %}" 
+           class="glass-surface glass-surface-hover p-5 md:p-6 border-l-4 border-l-indigo-500 group transition-all rounded-3xl">
+            <div class="flex justify-between items-start mb-4">
+                <span class="text-[10px] font-bold text-indigo-400 mono uppercase tracking-tighter">{{ disciplina.codigo }}</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="status-dot {% if disciplina.porcentagem_frequencia >= 75 %}bg-emerald-500{% else %}bg-amber-500{% endif %}"></span>
+                    <span class="text-[10px] font-bold text-slate-300">{{ disciplina.porcentagem_frequencia }}% Freq.</span>
+                </div>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2 tracking-tight italic leading-tight group-hover:text-indigo-400 transition-colors">{{ disciplina.nome }}</h3>
+            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">Prof. {{ disciplina.professor_nome }}</p>
+            
+            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Ver detalhes</span>
+                <svg class="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition-all group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+    {% empty %}
+        <div class="col-span-full py-20 text-center bg-slate-900/20 rounded-3xl border border-dashed border-white/10">
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Nenhuma disciplina encontrada</p>
+        </div>
+    {% endfor %}
+    </div>
+</section>
