@@ -208,14 +208,25 @@ def dashboard(request):
         'notificacoes': notificacoes_qs,
     }
 
+    # Consolidação de Aulas para o Dashboard (Prioridade para o que o usuário precisa ver)
+    aulas_recentes = []
     if is_admin:
         context['departamentos'] = Department.objects.all()
         context['infra_status'] = get_infra_status()
-    
+        # Admin vê as 10 últimas do sistema para supervisão global
+        aulas_recentes = Aula.objects.all().order_by('-data', '-horario_inicio')[:10]
     elif is_professor:
+        # Professor vê as suas 10 últimas aulas
+        aulas_recentes = Aula.objects.filter(
+            turma__professor__user=user
+        ).order_by('-data', '-horario_inicio')[:10]
+    
+    context['aulas_recentes'] = aulas_recentes
+
+    if is_professor:
         minhas_turmas = Turma.objects.filter(professor__user=user, ativa=True).select_related('disciplina')
         context['minhas_turmas'] = minhas_turmas
-        context['aulas_recentes'] = Aula.objects.filter(turma__professor__user=user).order_by('-data', '-horario_inicio')[:5]
+        
         context['chart_data'] = build_turmas_chart_data(list(minhas_turmas))
 
     if is_aluno:

@@ -250,7 +250,7 @@ def gerenciar_alunos_disciplina(request, turma_id):
         total_presencas = Presenca.objects.filter(aula=ultima_aula, status='VALIDA').count()
         total_faltas = max(alunos_count - total_presencas, 0)
         legenda_grafico = f"Última Chamada: {ultima_aula.data.strftime('%d/%m')}"
-        if ultima_aula.is_ativa():
+        if ultima_aula.is_ativa:
             legenda_grafico = f"Chamada em Aberto: {ultima_aula.data.strftime('%d/%m')}"
 
     chart_data = {

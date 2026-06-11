@@ -22,10 +22,11 @@ class Aula(models.Model):
     encerrada_manualmente = models.BooleanField(default=False)
     history = HistoricalRecords()
 
+    @property
     def is_ativa(self):
         """
         Verifica se a aula está ativa. Se encerrada_manualmente for True,
-        ela morre na hora.
+        ela morre na hora. Suporta aulas que atravessam a meia-noite.
         """
         if self.encerrada_manualmente:
             return False
@@ -35,6 +36,10 @@ class Aula(models.Model):
         # Comparação com margem de segurança de 15 minutos
         inicio_dt = timezone.make_aware(timezone.datetime.combine(self.data, self.horario_inicio))
         fim_dt = timezone.make_aware(timezone.datetime.combine(self.data, self.horario_fim))
+
+        # Se o horário de fim for menor que o de início, a aula atravessa a meia-noite
+        if fim_dt <= inicio_dt:
+            fim_dt += timedelta(days=1)
 
         return (inicio_dt - timedelta(minutes=15)) <= agora_dt <= fim_dt
 

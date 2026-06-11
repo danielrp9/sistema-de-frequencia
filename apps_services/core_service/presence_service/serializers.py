@@ -29,7 +29,7 @@ class PresencaSerializer(serializers.Serializer):
         if str(aula.token_qr) != str(data['token']):
             raise serializers.ValidationError("QR Code inválido ou expirado.")
 
-        if not aula.is_ativa():
+        if not aula.is_ativa:
             raise serializers.ValidationError("A chamada para esta aula não está ativa.")
 
         aluno = user.perfil_aluno

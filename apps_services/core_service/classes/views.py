@@ -78,7 +78,7 @@ def visualizar_qr_code(request, aula_id):
         if not is_dono_aula:
             return HttpResponse("Acesso negado: Permissão insuficiente.", status=403)
 
-    if not aula.is_ativa():
+    if not aula.is_ativa:
         return HttpResponse(f"Chamada expirada.", status=403)
   
     agora = timezone.now()
