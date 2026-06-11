@@ -81,7 +81,7 @@
                             <div class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
                                 <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
                                 <span class="text-[8px] md:text-[9px] font-bold text-slate-300 uppercase tracking-widest">
-                                    {% if user.is_superuser %}Administrador{% elif is_professor %}Docente{% else %}Discente{% endif %}
+                                    {% if is_admin %}Administrador{% elif is_professor %}Docente{% else %}Discente{% endif %}
                                 </span>
                             </div>
                             <span class="text-slate-500 text-[8px] md:text-[9px] font-bold uppercase mono tracking-tighter border-l border-white/10 pl-3 md:pl-4">{% now "d.m.Y // H:i" %}</span>

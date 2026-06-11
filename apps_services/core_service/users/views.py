@@ -201,8 +201,9 @@ def dashboard(request):
 
     context = {
         'user': user,
-        'is_professor': is_professor or is_admin,
+        'is_professor': is_professor,
         'is_aluno': is_aluno,
+        'is_admin': is_admin,
         'tipo': 'Administrador' if is_admin else 'Professor' if is_professor else 'Estudante',
         'notificacoes': notificacoes_qs,
     }
@@ -576,16 +577,6 @@ class AccountLoginView(LoginView):
 
 @login_required
 def configuracoes_usuario(request):
-    if request.method == 'POST':
-        theme = request.POST.get('theme')
-        
-        if theme in dict(User.THEME_CHOICES):
-            request.user.theme_preference = theme
-            
-        request.user.save()
-        messages.success(request, "Configurações de tema atualizadas com sucesso.")
-        return redirect('configuracoes_usuario')
-        
     return render(request, 'users/configuracoes.html', {
         'view_name': 'Configurações',
         'is_settings': True

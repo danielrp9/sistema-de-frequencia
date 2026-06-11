@@ -9,18 +9,9 @@ class User(AbstractUser):
     Modelo de usuário personalizado para suportar as permissões
     exigidas: Administradores, Professores e Alunos.
     """ 
-    THEME_CHOICES = [
-        ('default', 'Padrão (Futurista)'),
-        ('light', 'Claro'),
-        ('dark', 'Escuro'),
-    ]
-
     is_professor = models.BooleanField(default=False)
     is_aluno = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=True)
-    
-    # Novas preferências de usuário
-    theme_preference = models.CharField(max_length=10, choices=THEME_CHOICES, default='default')
 
     history = HistoricalRecords()
 

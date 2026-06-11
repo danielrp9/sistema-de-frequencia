@@ -19,6 +19,8 @@ USE_X_FORWARDED_PORT = True
 # Permite login via IP local em desenvolvimento
 CSRF_TRUSTED_ORIGINS = [
     'http://192.168.3.30:8000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 ngrok_url = os.getenv('NGROK_URL')
 if ngrok_url:
